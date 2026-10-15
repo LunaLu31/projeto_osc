@@ -21,7 +21,8 @@ return new class extends Migration
          $table->date('prazo')->nullable();
          $table->string('status')->default('aberta');
          $table->string('urgencia', 20)->nullable();
-         $table->timestamps();
+         $table->timestamp('data_criacao')->nullable();
+         $table->timestamp('data_atualizacao')->nullable();
         });
     }
 

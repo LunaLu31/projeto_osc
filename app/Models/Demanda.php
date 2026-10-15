@@ -6,7 +6,8 @@ class Demanda extends Model
 {
     protected $table = 'demandas';
     protected $primaryKey = 'id_demanda';
-    public $timestamps = true; // pra usar data_atualizacao
+    public const CREATED_AT = 'data_criacao';
+    public const UPDATED_AT = 'data_atualizacao';
     protected $fillable = ['id_osc','titulo','categoria','descricao','quantidade','prazo','status','urgencia'];
 
     public function osc()
