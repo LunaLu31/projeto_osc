@@ -46,7 +46,7 @@ class DemandaController extends Controller
             'initials' => collect(explode(' ', trim($osc->nome)))
                 ->filter()
                 ->take(2)
-                ->map(fn (string $parte) => mb_substr($parte, 0, 1))
+                ->map(fn(string $parte) => mb_substr($parte, 0, 1))
                 ->implode(''),
         ] : null;
 
