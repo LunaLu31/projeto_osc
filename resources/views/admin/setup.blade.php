@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Configuração inicial | REDECAM</title>
+    <title>Configuração inicial | Redcam</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <script>
@@ -39,7 +39,7 @@
     <main class="w-full max-w-[500px] rounded-2xl border border-line bg-white p-7 shadow-[0_22px_60px_rgba(21,49,47,0.12)] sm:p-10">
         <div class="mb-8 flex items-center gap-3">
             <span class="grid size-11 place-items-center rounded-[14px_14px_14px_5px] bg-primary font-display text-lg font-extrabold text-white">R</span>
-            <span><strong class="block font-display text-sm tracking-[0.08em]">REDECAM</strong><small class="mt-1 block text-xs text-muted">Configuração inicial</small></span>
+            <span><strong class="block font-display text-sm tracking-[0.08em]">Redcam</strong><small class="mt-1 block text-xs text-muted">Configuração inicial</small></span>
         </div>
         <span class="text-[11px] font-extrabold uppercase tracking-[0.12em] text-primary">Primeiro acesso</span>
         <h1 class="mt-2 font-display text-3xl font-bold leading-tight">Criar conta administrativa</h1>

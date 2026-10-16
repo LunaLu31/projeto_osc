@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Demanda;
+use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
 use Illuminate\Http\Request;
 
@@ -35,6 +36,25 @@ class DemandaController extends Controller
             ];
         });
 
+        $completedStatuses = ['concluida', 'concluída', 'concluido', 'concluído', 'atendida', 'atendido', 'finalizada', 'finalizado'];
+        $closedStatuses = [...$completedStatuses, 'cancelada', 'cancelado', 'encerrada', 'encerrado'];
+        $totalOscs = Osc::count();
+        $activeDemands = Demanda::whereNotNull('status')
+            ->whereNotIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), $closedStatuses)
+            ->count();
+        $completedDemands = Demanda::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), $completedStatuses)->count();
+        $totalInterests = ManifestacaoInteresse::count();
+        $monthlyInterests = ManifestacaoInteresse::where('data_manifestacao', '>=', now()->startOfMonth())->count();
+        $featuredOscInitials = Osc::query()
+            ->orderBy('nome')
+            ->limit(3)
+            ->get(['nome'])
+            ->map(fn(Osc $osc) => collect(explode(' ', trim($osc->nome)))
+                ->filter()
+                ->take(2)
+                ->map(fn(string $parte) => mb_substr($parte, 0, 1))
+                ->implode(''));
+
         $osc = Osc::find(session('osc_id'));
         if (! $osc && session()->has('osc_id')) {
             session()->forget('osc_id');
@@ -50,7 +70,16 @@ class DemandaController extends Controller
                 ->implode(''),
         ] : null;
 
-        return view('feed', compact('demandas', 'authenticatedOsc'));
+        return view('feed', compact(
+            'demandas',
+            'authenticatedOsc',
+            'totalOscs',
+            'activeDemands',
+            'completedDemands',
+            'totalInterests',
+            'monthlyInterests',
+            'featuredOscInitials',
+        ));
     }
     public function store(Request $request)
     {

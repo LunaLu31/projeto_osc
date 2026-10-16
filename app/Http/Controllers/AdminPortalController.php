@@ -66,11 +66,22 @@ class AdminPortalController extends Controller
         $admin = Adm::where('email', $data['email'])->first();
 
         if (! $admin || ! Hash::check($data['password'], $admin->senha_hash)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'As credenciais informadas são inválidas.',
+                    'errors' => ['email' => ['E-mail ou senha inválidos.']],
+                ], 422);
+            }
+
             return back()->withErrors(['email' => 'E-mail ou senha inválidos.'])
                 ->withInput($request->only('email'));
         }
 
         $this->startAdminSession($request, $admin);
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => url('/admin/dashboard')]);
+        }
 
         return redirect('/admin/dashboard');
     }

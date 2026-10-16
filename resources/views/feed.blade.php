@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>REDECAM - Rede que transforma</title>
+    <title>Redcam | Rede que transforma</title>
 
     <!-- Alpine.js para reatividade (pode ser instalado via npm se preferir) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -170,13 +170,61 @@
             letter-spacing: 0.025em;
         }
 
+        .navigation-menu {
+            position: relative;
+        }
+
         .nav {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            z-index: 50;
             display: flex;
-            align-items: center;
-            gap: 28px;
+            min-width: 240px;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: white;
+            box-shadow: 0 16px 40px rgba(21, 49, 47, 0.14);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+        }
+
+        .navigation-menu:hover .nav,
+        .navigation-menu:focus-within .nav,
+        .nav--open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
         .nav button,
+        .nav a {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            gap: 9px;
+            padding: 11px 12px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 14px;
+            text-align: left;
+            text-decoration: none;
+            transition: color 180ms ease, background 180ms ease;
+        }
+
+        .nav button:hover,
+        .nav a:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
         .site-footer button,
         .dashboard-list .section-heading button {
             padding: 0;
@@ -187,18 +235,8 @@
             transition: color 180ms ease;
         }
 
-        .nav button:hover,
         .site-footer button:hover {
             color: var(--primary);
-        }
-
-        .nav-portal {
-            display: none;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
         }
 
         .button {
@@ -253,7 +291,7 @@
         }
 
         .menu-button {
-            display: none;
+            display: grid;
             width: 44px;
             height: 44px;
             place-items: center;
@@ -1375,6 +1413,18 @@
             margin-top: 22px;
         }
 
+        .login-setup-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: var(--muted);
+            font-size: 11px;
+            text-decoration: none;
+        }
+
+        .login-setup-link:hover {
+            color: var(--primary);
+        }
+
         .demo-note {
             margin: 13px 0 0 !important;
             font-size: 10px !important;
@@ -1575,10 +1625,6 @@
         }
 
         @media (max-width: 1060px) {
-            .nav {
-                display: none;
-            }
-
             .hero {
                 gap: 5vw;
             }
@@ -1599,46 +1645,6 @@
         @media (max-width: 780px) {
             .site-header {
                 min-height: 70px;
-            }
-
-            .site-header .header-actions {
-                display: none;
-            }
-
-            .menu-button {
-                display: grid;
-            }
-
-            .nav--open {
-                position: absolute;
-                top: 69px;
-                right: 0;
-                left: 0;
-                display: flex;
-                align-items: stretch;
-                flex-direction: column;
-                gap: 0;
-                padding: 12px 24px 20px;
-                border-bottom: 1px solid var(--line);
-                background: white;
-                box-shadow: 0 12px 25px rgba(21, 49, 47, 0.08);
-            }
-
-            .nav--open button {
-                padding: 12px 0;
-                text-align: left;
-            }
-
-            .nav--open .nav-portal {
-                display: block;
-                padding: 12px 0;
-                color: var(--muted);
-                font-size: 14px;
-                text-decoration: none;
-            }
-
-            .nav--open .nav-portal:hover {
-                color: var(--primary);
             }
 
             .hero {
@@ -1730,10 +1736,6 @@
         }
 
         @media (max-width: 560px) {
-            .logo__copy small {
-                display: none;
-            }
-
             .hero__eyebrow span:last-child {
                 display: none;
             }
@@ -1918,7 +1920,7 @@
                 <button @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="logo" type="button" aria-label="Ir para o início">
                     <span class="logo__mark" x-html="getIcon('heart', 'size-5')"></span>
                     <span class="logo__copy">
-                        <strong>REDECAM</strong>
+                        <strong>Redcam</strong>
                         <small>Rede que transforma</small>
                     </span>
                 </button>
@@ -2063,31 +2065,34 @@
     <template x-if="!dashboard">
         <div class="site-shell">
             <header class="site-header">
+                <div class="navigation-menu" @click.outside="menuOpen = false">
+                    <button @click="menuOpen = !menuOpen" class="menu-button" aria-label="Abrir menu de navegação" aria-haspopup="true" :aria-expanded="menuOpen" type="button">
+                        <span x-html="getIcon(menuOpen ? 'close' : 'menu')"></span>
+                    </button>
+                    <nav :class="menuOpen ? 'nav nav--open' : 'nav'" aria-label="Navegação principal">
+                        <button @click="scrollToDemands" type="button">
+                            <span x-html="getIcon('home')"></span> Feed
+                        </button>
+                        <button @click="scrollToHow" type="button">
+                            <span x-html="getIcon('spark')"></span> Como funciona
+                        </button>
+                        <button @click="scrollToAbout" type="button">
+                            <span x-html="getIcon('people')"></span> Sobre a rede
+                        </button>
+                        <button @click="openLogin('admin')" type="button">
+                            <span x-html="getIcon('shield')"></span> Portal administrativo
+                        </button>
+                        <button @click="openLogin('osc')" type="button">
+                            <span x-html="getIcon('user')"></span> Área da OSC
+                        </button>
+                    </nav>
+                </div>
                 <button @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="logo" type="button" aria-label="Ir para o início">
                     <span class="logo__mark" x-html="getIcon('heart', 'size-5')"></span>
                     <span class="logo__copy">
-                        <strong>REDECAM</strong>
+                        <strong>Redcam</strong>
                         <small>Rede que transforma</small>
                     </span>
-                </button>
-                <nav :class="menuOpen ? 'nav nav--open' : 'nav'">
-                    <button @click="window.scrollTo({ top: 0, behavior: 'smooth' }); menuOpen = false" type="button">Início</button>
-                    <button @click="scrollToDemands" type="button">Demandas</button>
-                    <button @click="scrollToHow" type="button">Como funciona</button>
-                    <button @click="scrollToAbout" type="button">Sobre a rede</button>
-                    <a class="nav-portal" href="{{ url('/admin') }}">Portal admin</a>
-                </nav>
-                <div class="header-actions">
-                    <button @click="showLogin = true" class="button button--secondary">
-                        <span x-html="getIcon('user')"></span> Área da OSC
-                    </button>
-                    <a href="{{ url('/admin') }}" class="button button--secondary">Portal admin</a>
-                    <button @click="scrollToDemands" class="button button--primary">
-                        Quero ajudar <span x-html="getIcon('arrow', 'size-4')"></span>
-                    </button>
-                </div>
-                <button @click="menuOpen = !menuOpen" class="menu-button" aria-label="Abrir menu" type="button">
-                    <span x-html="getIcon(menuOpen ? 'close' : 'menu')"></span>
                 </button>
             </header>
 
@@ -2109,10 +2114,12 @@
                         </div>
                         <div class="hero__trust">
                             <span class="avatar-stack">
-                                <i>IF</i><i>CC</i><i>RA</i>
+                                @foreach ($featuredOscInitials as $initials)
+                                <i>{{ $initials }}</i>
+                                @endforeach
                             </span>
                             <span>
-                                <strong>+24 organizações</strong>
+                                <strong>{{ $totalOscs }} organizações</strong>
                                 conectadas em Camaçari
                             </span>
                         </div>
@@ -2122,10 +2129,9 @@
                         <div class="hero__impact-card">
                             <span class="impact-icon"><span x-html="getIcon('heart')"></span></span>
                             <div>
-                                <strong>186 conexões</strong>
-                                <span>geradas neste mês</span>
+                                <strong>{{ $monthlyInterests }} conexões</strong>
+                                <span>registradas neste mês</span>
                             </div>
-                            <span class="impact-growth">+18%</span>
                         </div>
                         <div class="hero__verified-card">
                             <span x-html="getIcon('shield')"></span>
@@ -2139,10 +2145,10 @@
 
                 <!-- Quick Stats -->
                 <section class="quick-stats">
-                    <article><strong>24</strong><span>OSCs cadastradas</span></article>
-                    <article><strong>37</strong><span>Demandas ativas</span></article>
-                    <article><strong>128</strong><span>Necessidades atendidas</span></article>
-                    <article><strong>460+</strong><span>Pessoas mobilizadas</span></article>
+                    <article><strong>{{ $totalOscs }}</strong><span>OSCs cadastradas</span></article>
+                    <article><strong>{{ $activeDemands }}</strong><span>Demandas ativas</span></article>
+                    <article><strong>{{ $completedDemands }}</strong><span>Demandas concluídas</span></article>
+                    <article><strong>{{ $totalInterests }}</strong><span>Manifestações recebidas</span></article>
                 </section>
 
                 <!-- Demands -->
@@ -2273,7 +2279,7 @@
                     <div class="about-section__copy">
                         <span class="eyebrow">Uma rede feita em Camaçari</span>
                         <h2>Informação centralizada. Impacto multiplicado.</h2>
-                        <p>A REDCAM aproxima organizações sociais, apoiadores e a UOSCC em um ambiente confiável. Aqui, necessidades reais não se perdem no fluxo das redes sociais.</p>
+                        <p>A Redcam aproxima organizações sociais, apoiadores e a UOSCC em um ambiente confiável. Aqui, necessidades reais não se perdem no fluxo das redes sociais.</p>
                         <ul>
                             <li><span x-html="getIcon('check')"></span> Demandas organizadas e atualizadas</li>
                             <li><span x-html="getIcon('check')"></span> Contatos protegidos pela LGPD</li>
@@ -2303,7 +2309,7 @@
                     <button @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="logo" type="button" aria-label="Ir para o início">
                         <span class="logo__mark" x-html="getIcon('heart', 'size-5')"></span>
                         <span class="logo__copy">
-                            <strong>REDECAM</strong>
+                            <strong>Redcam</strong>
                             <small>Rede que transforma</small>
                         </span>
                     </button>
@@ -2323,12 +2329,12 @@
                     <button>Fale conosco</button>
                 </div>
                 <div class="footer-signature">
-                    <strong>UOSCC / REDCAM</strong>
+                    <strong>UOSCC / Redcam</strong>
                     <span>Um projeto pela comunidade de Camaçari.</span>
                 </div>
             </footer>
             <div class="footer-bottom">
-                <span>© 2025 REDCAM. Todos os direitos reservados.</span>
+                <span>© 2025 Redcam. Todos os direitos reservados.</span>
                 <span>Protótipo MVP · Versão A</span>
             </div>
         </div>
@@ -2479,11 +2485,11 @@
             <div class="modal">
                 <form class="login-form" @submit.prevent="submitLogin($event)">
                     <div class="login-icon">
-                        <span x-html="getIcon('user')"></span>
+                        <span x-html="getIcon(loginRole === 'admin' ? 'shield' : 'user')"></span>
                     </div>
-                    <span class="eyebrow">Área restrita</span>
-                    <h2>Acesse sua organização</h2>
-                    <p>Gerencie demandas e acompanhe quem quer ajudar.</p>
+                    <span class="eyebrow" x-text="loginRole === 'admin' ? 'Portal administrativo' : 'Área restrita'"></span>
+                    <h2 x-text="loginRole === 'admin' ? 'Acesse a gestão da rede' : 'Acesse sua organização'"></h2>
+                    <p x-text="loginRole === 'admin' ? 'Gerencie as OSCs cadastradas e acompanhe seus projetos.' : 'Gerencie demandas e acompanhe quem quer ajudar.'"></p>
                     <label class="field">
                         <span class="field__label">E-mail</span>
                         <input name="email" type="email" autocomplete="username" required @input="loginError = ''">
@@ -2496,8 +2502,12 @@
                         <p class="form-error" role="alert" x-text="loginError"></p>
                     </template>
                     <button type="submit" class="button button--primary w-full">
-                        Entrar no painel <span x-html="getIcon('arrow')"></span>
+                        <span x-text="loginRole === 'admin' ? 'Entrar no portal administrativo' : 'Entrar no painel'"></span>
+                        <span x-html="getIcon('arrow')"></span>
                     </button>
+                    <template x-if="loginRole === 'admin'">
+                        <a class="login-setup-link" href="{{ url('/admin') }}">Primeiro acesso? Configurar administrador</a>
+                    </template>
                 </form>
             </div>
         </div>
@@ -2520,6 +2530,7 @@
                 category: 'Todas',
                 onlyUrgent: false,
                 showLogin: false,
+                loginRole: 'osc',
                 dashboard: Boolean(JSON.parse(document.getElementById('authenticated-osc-data').textContent)),
                 loginError: '',
                 menuOpen: false,
@@ -2584,6 +2595,13 @@
                     this.menuOpen = false;
                 },
 
+                openLogin(role) {
+                    this.loginRole = role;
+                    this.loginError = '';
+                    this.showLogin = true;
+                    this.menuOpen = false;
+                },
+
                 async submitInterest(event) {
                     const form = event.target;
                     this.formError = '';
@@ -2612,9 +2630,10 @@
 
                 async submitLogin(event) {
                     this.loginError = '';
+                    const isAdminLogin = this.loginRole === 'admin';
 
                     try {
-                        const response = await fetch('/osc/login', {
+                        const response = await fetch(isAdminLogin ? '/admin/login' : '/osc/login', {
                             method: 'POST',
                             headers: {
                                 'Accept': 'application/json',
@@ -2626,6 +2645,11 @@
 
                         if (!response.ok) {
                             this.loginError = Object.values(result.errors || {}).flat()[0] || 'Não foi possível entrar. Verifique suas credenciais.';
+                            return;
+                        }
+
+                        if (isAdminLogin) {
+                            window.location.href = result.redirect;
                             return;
                         }
 
