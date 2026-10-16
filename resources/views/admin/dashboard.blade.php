@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <script>
-        tailwind = { config: { theme: { extend: { colors: { ink: '#15312f', muted: '#617572', primary: '#126b62', 'primary-dark': '#0a4f49', 'primary-light': '#dff3ed', canvas: '#f6f8f5', line: '#dfe8e4', coral: '#e55f46', 'blue-light': '#eaf2ff' }, fontFamily: { sans: ['DM Sans', 'sans-serif'], display: ['Manrope', 'sans-serif'] } } } } };
+        tailwind = {
+            config: {
+                theme: {
+                    extend: {
+                        colors: {
+                            ink: '#15312f',
+                            muted: '#617572',
+                            primary: '#126b62',
+                            'primary-dark': '#0a4f49',
+                            'primary-light': '#dff3ed',
+                            canvas: '#f6f8f5',
+                            line: '#dfe8e4',
+                            coral: '#e55f46',
+                            'blue-light': '#eaf2ff'
+                        },
+                        fontFamily: {
+                            sans: ['DM Sans', 'sans-serif'],
+                            display: ['Manrope', 'sans-serif']
+                        }
+                    }
+                }
+            }
+        };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="min-h-screen bg-canvas font-sans text-ink">
     <header class="sticky top-0 z-20 flex min-h-[74px] items-center justify-between gap-4 border-b border-line bg-white/95 px-5 backdrop-blur sm:px-[5vw]">
         <a href="{{ url('/') }}" class="flex items-center gap-3 text-inherit no-underline">
@@ -47,7 +71,9 @@
 
         <div class="mt-6 grid items-start gap-5 lg:grid-cols-[0.88fr_1.12fr]">
             <section class="min-w-0 border border-line bg-white p-5 sm:p-6">
-                <div class="mb-5 flex items-baseline justify-between gap-3"><h2 class="font-display text-lg font-bold">Cadastrar OSC</h2><span class="text-[11px] text-muted">Vinculada à sua conta</span></div>
+                <div class="mb-5 flex items-baseline justify-between gap-3">
+                    <h2 class="font-display text-lg font-bold">Cadastrar OSC</h2><span class="text-[11px] text-muted">Vinculada à sua conta</span>
+                </div>
                 <form method="POST" action="{{ url('/admin/oscs') }}" class="space-y-3">
                     @csrf
                     <label class="block text-xs font-bold" for="nome">Nome da organização
@@ -90,46 +116,68 @@
             </section>
 
             <section class="min-w-0 border border-line bg-white p-5 sm:p-6">
-                <div class="mb-4 flex items-baseline justify-between gap-3"><h2 class="font-display text-lg font-bold">Minhas OSCs</h2><span class="text-[11px] text-muted">{{ $oscs->count() }} no total</span></div>
+                <div class="mb-4 flex items-baseline justify-between gap-3">
+                    <h2 class="font-display text-lg font-bold">Minhas OSCs</h2><span class="text-[11px] text-muted">{{ $oscs->count() }} no total</span>
+                </div>
                 @if ($oscs->isEmpty())
-                    <p class="border border-dashed border-[#bdcec9] px-4 py-8 text-center text-sm text-muted">Ainda não há OSCs cadastradas nesta conta.</p>
+                <p class="border border-dashed border-[#bdcec9] px-4 py-8 text-center text-sm text-muted">Ainda não há OSCs cadastradas nesta conta.</p>
                 @else
-                    <div class="overflow-x-auto"><table class="w-full min-w-[500px] border-collapse text-left text-xs">
-                        <thead><tr class="bg-[#f5f8f6] text-[10px] uppercase tracking-wide text-muted"><th class="px-3 py-3 font-bold">Organização</th><th class="px-3 py-3 font-bold">Área</th><th class="px-3 py-3 font-bold">Projetos</th></tr></thead>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[500px] border-collapse text-left text-xs">
+                        <thead>
+                            <tr class="bg-[#f5f8f6] text-[10px] uppercase tracking-wide text-muted">
+                                <th class="px-3 py-3 font-bold">Organização</th>
+                                <th class="px-3 py-3 font-bold">Área</th>
+                                <th class="px-3 py-3 font-bold">Projetos</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @foreach ($oscs as $osc)
-                                <tr class="border-b border-[#edf1ef] align-top">
-                                    <td class="px-3 py-3"><strong>{{ $osc->nome }}</strong><small class="mt-1 block text-[10px] text-muted">{{ $osc->email }}</small></td>
-                                    <td class="px-3 py-3">{{ $osc->area_atuacao ?: 'Não informada' }}</td>
-                                    <td class="px-3 py-3">{{ $osc->demandas_count }}</td>
-                                </tr>
+                            <tr class="border-b border-[#edf1ef] align-top">
+                                <td class="px-3 py-3"><strong>{{ $osc->nome }}</strong><small class="mt-1 block text-[10px] text-muted">{{ $osc->email }}</small></td>
+                                <td class="px-3 py-3">{{ $osc->area_atuacao ?: 'Não informada' }}</td>
+                                <td class="px-3 py-3">{{ $osc->demandas_count }}</td>
+                            </tr>
                             @endforeach
                         </tbody>
-                    </table></div>
+                    </table>
+                </div>
                 @endif
 
                 <div class="mt-6 border-t border-line pt-5">
-                    <div class="mb-4 flex items-baseline justify-between gap-3"><h3 class="font-display text-sm font-bold">Projetos e demandas</h3><span class="text-[11px] text-muted">{{ $demandas->count() }} no total</span></div>
+                    <div class="mb-4 flex items-baseline justify-between gap-3">
+                        <h3 class="font-display text-sm font-bold">Projetos e demandas</h3><span class="text-[11px] text-muted">{{ $demandas->count() }} no total</span>
+                    </div>
                     @if ($demandas->isEmpty())
-                        <p class="px-3 py-6 text-center text-xs text-muted">Os projetos das OSCs cadastradas aparecerão aqui.</p>
+                    <p class="px-3 py-6 text-center text-xs text-muted">Os projetos das OSCs cadastradas aparecerão aqui.</p>
                     @else
-                        <div class="overflow-x-auto"><table class="w-full min-w-[560px] border-collapse text-left text-xs">
-                            <thead><tr class="bg-[#f5f8f6] text-[10px] uppercase tracking-wide text-muted"><th class="px-3 py-3 font-bold">Projeto</th><th class="px-3 py-3 font-bold">OSC</th><th class="px-3 py-3 font-bold">Status</th><th class="px-3 py-3 font-bold">Interesses</th></tr></thead>
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[560px] border-collapse text-left text-xs">
+                            <thead>
+                                <tr class="bg-[#f5f8f6] text-[10px] uppercase tracking-wide text-muted">
+                                    <th class="px-3 py-3 font-bold">Projeto</th>
+                                    <th class="px-3 py-3 font-bold">OSC</th>
+                                    <th class="px-3 py-3 font-bold">Status</th>
+                                    <th class="px-3 py-3 font-bold">Interesses</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 @foreach ($demandas as $demanda)
-                                    <tr class="border-b border-[#edf1ef] align-top">
-                                        <td class="px-3 py-3"><strong>{{ $demanda->titulo }}</strong><small class="mt-1 block text-[10px] text-muted">{{ $demanda->data_criacao ? \Illuminate\Support\Carbon::parse($demanda->data_criacao)->format('d/m/Y') : 'Data não informada' }}</small></td>
-                                        <td class="px-3 py-3">{{ $demanda->osc?->nome ?? 'OSC' }}</td>
-                                        <td class="px-3 py-3"><span class="inline-flex rounded-full bg-primary-light px-2 py-1 text-[9px] font-extrabold uppercase text-primary">{{ $demanda->status }}</span></td>
-                                        <td class="px-3 py-3">{{ $demanda->manifestacoes_count }}</td>
-                                    </tr>
+                                <tr class="border-b border-[#edf1ef] align-top">
+                                    <td class="px-3 py-3"><strong>{{ $demanda->titulo }}</strong><small class="mt-1 block text-[10px] text-muted">{{ $demanda->data_criacao ? \Illuminate\Support\Carbon::parse($demanda->data_criacao)->format('d/m/Y') : 'Data não informada' }}</small></td>
+                                    <td class="px-3 py-3">{{ $demanda->osc?->nome ?? 'OSC' }}</td>
+                                    <td class="px-3 py-3"><span class="inline-flex rounded-full bg-primary-light px-2 py-1 text-[9px] font-extrabold uppercase text-primary">{{ $demanda->status }}</span></td>
+                                    <td class="px-3 py-3">{{ $demanda->manifestacoes_count }}</td>
+                                </tr>
                                 @endforeach
                             </tbody>
-                        </table></div>
+                        </table>
+                    </div>
                     @endif
                 </div>
             </section>
         </div>
     </main>
 </body>
+
 </html>

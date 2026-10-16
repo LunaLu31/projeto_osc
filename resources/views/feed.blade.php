@@ -2503,8 +2503,12 @@
         </div>
     </template>
 
-    <script type="application/json" id="demandas-data">@json($demandas)</script>
-    <script type="application/json" id="authenticated-osc-data">@json($authenticatedOsc)</script>
+    <script type="application/json" id="demandas-data">
+        @json($demandas)
+    </script>
+    <script type="application/json" id="authenticated-osc-data">
+        @json($authenticatedOsc)
+    </script>
 
     <!-- Alpine.js Logic -->
     <script>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,32 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <script>
-        tailwind = { config: { theme: { extend: { colors: { ink: '#15312f', muted: '#617572', primary: '#126b62', 'primary-dark': '#0a4f49', 'primary-light': '#dff3ed', canvas: '#f6f8f5', line: '#dfe8e4', coral: '#e55f46' }, fontFamily: { sans: ['DM Sans', 'sans-serif'], display: ['Manrope', 'sans-serif'] } } } } };
+        tailwind = {
+            config: {
+                theme: {
+                    extend: {
+                        colors: {
+                            ink: '#15312f',
+                            muted: '#617572',
+                            primary: '#126b62',
+                            'primary-dark': '#0a4f49',
+                            'primary-light': '#dff3ed',
+                            canvas: '#f6f8f5',
+                            line: '#dfe8e4',
+                            coral: '#e55f46'
+                        },
+                        fontFamily: {
+                            sans: ['DM Sans', 'sans-serif'],
+                            display: ['Manrope', 'sans-serif']
+                        }
+                    }
+                }
+            }
+        };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_12%_18%,rgba(217,239,139,0.22),transparent_24%),linear-gradient(118deg,#eff8f2_0%,#f7faf6_55%,#e4f2ec_100%)] px-5 py-8 font-sans text-ink">
     <main class="w-full max-w-[500px] rounded-2xl border border-line bg-white p-7 shadow-[0_22px_60px_rgba(21,49,47,0.12)] sm:p-10">
         <div class="mb-8 flex items-center gap-3">
@@ -42,4 +65,5 @@
         </form>
     </main>
 </body>
+
 </html>

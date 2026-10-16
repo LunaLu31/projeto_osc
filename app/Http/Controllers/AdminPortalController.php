@@ -84,7 +84,7 @@ class AdminPortalController extends Controller
         }
 
         $oscs = $admin->oscs()->withCount('demandas')->orderBy('nome')->get();
-        $demandas = Demanda::whereHas('osc', fn ($query) => $query->where('id_admin', $admin->id_admin))
+        $demandas = Demanda::whereHas('osc', fn($query) => $query->where('id_admin', $admin->id_admin))
             ->with('osc')
             ->withCount('manifestacoes')
             ->latest('data_criacao')

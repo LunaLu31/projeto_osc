@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Adm;
 use App\Models\Osc;
 use Illuminate\Http\Request;
