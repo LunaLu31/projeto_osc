@@ -453,101 +453,18 @@
 
         .hero__visual {
             position: relative;
-            height: 530px;
-        }
-
-        .hero__visual::before {
-            position: absolute;
-            inset: -18px 16px 18px -18px;
-            border: 1px solid rgba(52, 125, 184, 0.18);
-            border-radius: 40% 18px 40% 18px;
-            content: "";
-            transform: rotate(-2deg);
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1061 / 1008;
+            margin-inline: auto;
         }
 
         .hero__visual>img {
+            display: block;
             width: 100%;
             height: 100%;
-            border-radius: 42% 18px 42% 18px;
-            object-fit: cover;
-            filter: saturate(0.85) contrast(0.95);
-            box-shadow: var(--shadow);
-        }
-
-        .hero__visual::after {
-            position: absolute;
-            inset: 0;
-            border-radius: 42% 18px 42% 18px;
-            background: linear-gradient(180deg, transparent 55%, rgba(22, 61, 99, 0.24));
-            content: "";
-        }
-
-        .hero__impact-card,
-        .hero__verified-card {
-            position: absolute;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.65);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 16px 45px rgba(28, 66, 103, 0.18);
-            backdrop-filter: blur(14px);
-        }
-
-        .hero__impact-card {
-            right: -32px;
-            bottom: 48px;
-            gap: 12px;
-            min-width: 255px;
-            padding: 15px;
-            border-radius: 16px;
-        }
-
-        .impact-icon {
-            display: grid;
-            width: 42px;
-            height: 42px;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--coral-light);
-            color: var(--coral);
-        }
-
-        .hero__impact-card div,
-        .hero__verified-card span {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-        }
-
-        .hero__impact-card strong,
-        .hero__verified-card strong {
-            font-size: 13px;
-        }
-
-        .hero__impact-card div span,
-        .hero__verified-card span span {
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        .impact-growth {
-            color: var(--primary);
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .hero__verified-card {
-            top: 45px;
-            left: -28px;
-            gap: 10px;
-            padding: 11px 14px;
-            border-radius: 14px;
-            color: var(--primary);
-        }
-
-        .hero__verified-card>svg {
-            width: 22px;
+            object-fit: contain;
+            clip-path: ellipse(41.9% 44.1% at 47.3% 49.7%);
         }
 
         .quick-stats {
@@ -1630,11 +1547,7 @@
             }
 
             .hero__visual {
-                height: 460px;
-            }
-
-            .hero__impact-card {
-                right: -10px;
+                max-width: 460px;
             }
 
             .demand-grid {
@@ -1658,12 +1571,8 @@
             }
 
             .hero__visual {
-                height: 420px;
+                width: min(100%, 420px);
                 margin: 20px 8px 0;
-            }
-
-            .hero__verified-card {
-                left: -10px;
             }
 
             .quick-stats {
@@ -1759,17 +1668,7 @@
             }
 
             .hero__visual {
-                height: 340px;
-            }
-
-            .hero__verified-card {
-                top: 20px;
-            }
-
-            .hero__impact-card {
-                right: -4px;
-                bottom: 22px;
-                min-width: 225px;
+                width: min(100%, 340px);
             }
 
             .quick-stats {
@@ -2125,21 +2024,7 @@
                         </div>
                     </div>
                     <div class="hero__visual">
-                        <img alt="Voluntários trabalhando juntos em uma ação comunitária" src="https://images.unsplash.com/photo-1735504646725-0a5e69c4c9ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=85&w=1080">
-                        <div class="hero__impact-card">
-                            <span class="impact-icon"><span x-html="getIcon('heart')"></span></span>
-                            <div>
-                                <strong>{{ $monthlyInterests }} conexões</strong>
-                                <span>registradas neste mês</span>
-                            </div>
-                        </div>
-                        <div class="hero__verified-card">
-                            <span x-html="getIcon('shield')"></span>
-                            <span>
-                                <strong>Rede segura</strong>
-                                Dados protegidos
-                            </span>
-                        </div>
+                        <img src="{{ asset('images/redcam-logo.webp') }}" alt="Logotipo Redcam: transformando intenções isoladas em ações coletivas" width="1061" height="1008" fetchpriority="high" decoding="async">
                     </div>
                 </section>
 
@@ -2148,7 +2033,11 @@
                     <article><strong>{{ $totalOscs }}</strong><span>OSCs cadastradas</span></article>
                     <article><strong>{{ $activeDemands }}</strong><span>Demandas ativas</span></article>
                     <article><strong>{{ $completedDemands }}</strong><span>Demandas concluídas</span></article>
-                    <article><strong>{{ $totalInterests }}</strong><span>Manifestações recebidas</span></article>
+                    <article>
+                        <strong>{{ $totalInterests }}</strong>
+                        <span>Manifestações recebidas</span>
+                        <span>{{ $monthlyInterests }} neste mês</span>
+                    </article>
                 </section>
 
                 <!-- Demands -->
