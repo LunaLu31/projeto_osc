@@ -192,6 +192,10 @@
             color: var(--primary);
         }
 
+        .nav-portal {
+            display: none;
+        }
+
         .header-actions {
             display: flex;
             gap: 10px;
@@ -1625,6 +1629,18 @@
                 text-align: left;
             }
 
+            .nav--open .nav-portal {
+                display: block;
+                padding: 12px 0;
+                color: var(--muted);
+                font-size: 14px;
+                text-decoration: none;
+            }
+
+            .nav--open .nav-portal:hover {
+                color: var(--primary);
+            }
+
             .hero {
                 min-height: auto;
                 grid-template-columns: 1fr;
@@ -2059,11 +2075,13 @@
                     <button @click="scrollToDemands" type="button">Demandas</button>
                     <button @click="scrollToHow" type="button">Como funciona</button>
                     <button @click="scrollToAbout" type="button">Sobre a rede</button>
+                    <a class="nav-portal" href="{{ url('/admin') }}">Portal admin</a>
                 </nav>
                 <div class="header-actions">
                     <button @click="showLogin = true" class="button button--secondary">
                         <span x-html="getIcon('user')"></span> Área da OSC
                     </button>
+                    <a href="{{ url('/admin') }}" class="button button--secondary">Portal admin</a>
                     <button @click="scrollToDemands" class="button button--primary">
                         Quero ajudar <span x-html="getIcon('arrow', 'size-4')"></span>
                     </button>
@@ -2295,6 +2313,7 @@
                     <strong>Navegue</strong>
                     <button @click="scrollToDemands">Demandas</button>
                     <button @click="showLogin = true">Área da OSC</button>
+                    <a class="text-sm text-muted no-underline transition-colors hover:text-primary" href="{{ url('/admin') }}">Portal administrativo</a>
                     <button @click="scrollToAbout">Sobre a rede</button>
                 </div>
                 <div>

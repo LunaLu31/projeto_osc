@@ -25,6 +25,7 @@ class OscAuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $request->session()->forget('adm_id');
         $request->session()->put('osc_id', $osc->id_osc);
 
         return response()->json([
