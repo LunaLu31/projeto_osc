@@ -14,13 +14,13 @@
                 theme: {
                     extend: {
                         colors: {
-                            ink: '#15312f',
-                            muted: '#617572',
-                            primary: '#126b62',
-                            'primary-dark': '#0a4f49',
-                            'primary-light': '#dff3ed',
-                            canvas: '#f6f8f5',
-                            line: '#dfe8e4',
+                            ink: '#18304b',
+                            muted: '#5e7188',
+                            primary: '#347db8',
+                            'primary-dark': '#245d8d',
+                            'primary-light': '#e2f1fc',
+                            canvas: '#f5f9fd',
+                            line: '#dce8f2',
                             coral: '#e55f46'
                         },
                         fontFamily: {
@@ -35,8 +35,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_12%_18%,rgba(217,239,139,0.22),transparent_24%),linear-gradient(118deg,#eff8f2_0%,#f7faf6_55%,#e4f2ec_100%)] px-5 py-8 font-sans text-ink">
-    <main class="w-full max-w-[500px] rounded-2xl border border-line bg-white p-7 shadow-[0_22px_60px_rgba(21,49,47,0.12)] sm:p-10">
+<body class="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_12%_18%,rgba(167,218,250,0.26),transparent_27%),linear-gradient(118deg,#eaf6ff_0%,#f8fbff_54%,#e3f1fc_100%)] px-5 py-8 font-sans text-ink">
+    <main class="w-full max-w-[500px] rounded-2xl border border-line bg-white p-7 shadow-[0_22px_60px_rgba(28,66,103,0.12)] sm:p-10">
         <div class="mb-8 flex items-center gap-3">
             <span class="grid size-11 place-items-center rounded-[14px_14px_14px_5px] bg-primary font-display text-lg font-extrabold text-white">R</span>
             <span><strong class="block font-display text-sm tracking-[0.08em]">Redcam</strong><small class="mt-1 block text-xs text-muted">Configuração inicial</small></span>
@@ -47,19 +47,19 @@
         <form method="POST" action="{{ url('/admin/setup') }}" class="space-y-3">
             @csrf
             <label class="block text-xs font-bold" for="nome">Nome
-                <input id="nome" name="nome" value="{{ old('nome') }}" autocomplete="name" maxlength="100" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#fbfcfb] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
+                <input id="nome" name="nome" value="{{ old('nome') }}" autocomplete="name" maxlength="100" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#f8fbfe] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
                 @error('nome') <span class="mt-1 block text-[11px] font-medium text-coral">{{ $message }}</span> @enderror
             </label>
             <label class="block text-xs font-bold" for="email">E-mail
-                <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" maxlength="150" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#fbfcfb] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
+                <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" maxlength="150" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#f8fbfe] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
                 @error('email') <span class="mt-1 block text-[11px] font-medium text-coral">{{ $message }}</span> @enderror
             </label>
             <label class="block text-xs font-bold" for="password">Senha (mínimo de 8 caracteres)
-                <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#fbfcfb] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
+                <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#f8fbfe] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
                 @error('password') <span class="mt-1 block text-[11px] font-medium text-coral">{{ $message }}</span> @enderror
             </label>
             <label class="block text-xs font-bold" for="password_confirmation">Confirmar senha
-                <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#fbfcfb] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
+                <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required class="mt-2 h-11 w-full rounded-xl border border-line bg-[#f8fbfe] px-3 text-sm font-normal outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
             </label>
             <button type="submit" class="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-white transition hover:bg-primary-dark">Criar administrador e continuar</button>
         </form>

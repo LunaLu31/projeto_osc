@@ -14,13 +14,13 @@
                 theme: {
                     extend: {
                         colors: {
-                            ink: '#15312f',
-                            muted: '#617572',
-                            primary: '#126b62',
-                            'primary-dark': '#0a4f49',
-                            'primary-light': '#dff3ed',
-                            canvas: '#f6f8f5',
-                            line: '#dfe8e4',
+                            ink: '#18304b',
+                            muted: '#5e7188',
+                            primary: '#347db8',
+                            'primary-dark': '#245d8d',
+                            'primary-light': '#e2f1fc',
+                            canvas: '#f5f9fd',
+                            line: '#dce8f2',
                             coral: '#e55f46'
                         },
                         fontFamily: {
@@ -35,8 +35,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_12%_18%,rgba(217,239,139,0.22),transparent_24%),linear-gradient(118deg,#eff8f2_0%,#f7faf6_55%,#e4f2ec_100%)] px-5 py-8 font-sans text-ink">
-    <main class="w-full max-w-[440px] rounded-2xl border border-line bg-white p-7 shadow-[0_22px_60px_rgba(21,49,47,0.12)] sm:p-10">
+<body class="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_12%_18%,rgba(167,218,250,0.26),transparent_27%),linear-gradient(118deg,#eaf6ff_0%,#f8fbff_54%,#e3f1fc_100%)] px-5 py-8 font-sans text-ink">
+    <main class="w-full max-w-[440px] rounded-2xl border border-line bg-white p-7 shadow-[0_22px_60px_rgba(28,66,103,0.12)] sm:p-10">
         <div class="mb-9 flex items-center gap-3">
             <span class="grid size-11 place-items-center rounded-[14px_14px_14px_5px] bg-primary font-display text-lg font-extrabold text-white">R</span>
             <span><strong class="block font-display text-sm tracking-[0.08em]">Redcam</strong><small class="mt-1 block text-xs text-muted">Portal administrativo</small></span>
@@ -47,10 +47,10 @@
         <form method="POST" action="{{ url('/admin/login') }}" class="space-y-4">
             @csrf
             <label class="block text-xs font-bold" for="email">E-mail
-                <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="username" required autofocus class="mt-2 h-12 w-full rounded-xl border border-line bg-[#fbfcfb] px-3 text-sm font-normal outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
+                <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="username" required autofocus class="mt-2 h-12 w-full rounded-xl border border-line bg-[#f8fbfe] px-3 text-sm font-normal outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
             </label>
             <label class="block text-xs font-bold" for="password">Senha
-                <input id="password" name="password" type="password" autocomplete="current-password" required class="mt-2 h-12 w-full rounded-xl border border-line bg-[#fbfcfb] px-3 text-sm font-normal outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
+                <input id="password" name="password" type="password" autocomplete="current-password" required class="mt-2 h-12 w-full rounded-xl border border-line bg-[#f8fbfe] px-3 text-sm font-normal outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15">
             </label>
             @error('email') <p class="rounded-lg bg-[#fff0ec] px-3 py-2 text-xs font-semibold text-[#a33f2d]" role="alert">{{ $message }}</p> @enderror
             @error('password') <p class="rounded-lg bg-[#fff0ec] px-3 py-2 text-xs font-semibold text-[#a33f2d]" role="alert">{{ $message }}</p> @enderror
