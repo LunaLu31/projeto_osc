@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $titulo }} | Redcam</title>
-    <style>
+    <style nonce="{{ Vite::cspNonce() }}">
         body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: #f5f9fd; color: #18304b; font-family: "DM Sans", system-ui, sans-serif; }
         main { max-width: 440px; padding: 40px 32px; border: 1px solid #dce8f2; border-radius: 20px; background: #fff; text-align: center; }
         span { color: #347db8; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }

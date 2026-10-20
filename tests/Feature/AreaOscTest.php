@@ -66,7 +66,9 @@ class AreaOscTest extends TestCase
 
     public function test_guests_are_redirected_to_the_osc_login(): void
     {
-        $this->get('/osc/painel')->assertRedirect('/osc/login');
+        foreach (['/osc/painel', '/osc/demandas', '/osc/contatos', '/osc/senha'] as $url) {
+            $this->get($url)->assertRedirect('/osc/login');
+        }
         $this->post('/osc/demandas', $this->demandPayload())->assertRedirect('/osc/login');
 
         $this->assertDatabaseMissing('demandas', ['titulo' => 'Cestas básicas']);
@@ -79,26 +81,87 @@ class AreaOscTest extends TestCase
         $this->actingAs($admin, 'admin')->get('/osc/painel')->assertRedirect('/osc/login');
     }
 
-    public function test_dashboard_lists_only_its_demands_with_interest_contacts(): void
+    public function test_overview_shows_metrics_recent_contacts_and_upcoming_deadlines(): void
     {
         $osc = Osc::factory()->create();
-        $demanda = Demanda::factory()->for($osc)->create(['titulo' => 'Doação de livros']);
-        Demanda::factory()->create(['titulo' => 'Demanda de outra OSC']);
-        ManifestacaoInteresse::factory()->for($demanda)->create([
-            'nome_apoiador' => 'Ana Souza',
-            'email' => 'ana@example.com',
-            'tipo_interesse' => 'Voluntário',
-        ]);
+        $demanda = Demanda::factory()->for($osc)->create(['titulo' => 'Doação de livros', 'prazo' => now()->addDays(3)]);
+        Demanda::factory()->for($osc)->status(Demanda::STATUS_CONCLUIDA)->create();
+        Demanda::factory()->create(['titulo' => 'Demanda de outra OSC', 'prazo' => now()->addDays(2)]);
+        ManifestacaoInteresse::factory()->for($demanda)->create(['nome_apoiador' => 'Ana Souza', 'tipo_interesse' => 'Voluntário']);
 
         $this->actingAs($osc, 'osc')
             ->get('/osc/painel')
             ->assertOk()
             ->assertViewIs('osc.painel')
-            ->assertSee('Doação de livros')
-            ->assertDontSee('Demanda de outra OSC')
+            ->assertViewHas('metricas', fn (array $m) => $m['demandas_ativas'] === 1
+                && $m['demandas_concluidas'] === 1
+                && $m['total_contatos'] === 1
+                && $m['contatos_recentes'] === 1
+                && $m['contatos_por_tipo']['Voluntário'] === 1)
             ->assertSee('Ana Souza')
+            ->assertSee('Doação de livros')
+            ->assertDontSee('Demanda de outra OSC');
+    }
+
+    public function test_demands_page_lists_only_its_demands_and_filters_by_status(): void
+    {
+        $osc = Osc::factory()->create();
+        Demanda::factory()->for($osc)->create(['titulo' => 'Demanda aberta']);
+        Demanda::factory()->for($osc)->status(Demanda::STATUS_CONCLUIDA)->create(['titulo' => 'Demanda finalizada']);
+        Demanda::factory()->create(['titulo' => 'Demanda de outra OSC']);
+
+        $this->actingAs($osc, 'osc');
+        $this->get('/osc/demandas')
+            ->assertOk()
+            ->assertSee('Demanda aberta')
+            ->assertSee('Demanda finalizada')
+            ->assertDontSee('Demanda de outra OSC');
+
+        $this->get('/osc/demandas?status='.urlencode(Demanda::STATUS_CONCLUIDA))
+            ->assertSee('Demanda finalizada')
+            ->assertDontSee('Demanda aberta');
+    }
+
+    public function test_contacts_page_shows_only_its_own_supporters(): void
+    {
+        $osc = Osc::factory()->create();
+        $demanda = Demanda::factory()->for($osc)->create(['titulo' => 'Doação de livros']);
+        ManifestacaoInteresse::factory()->for($demanda)->create([
+            'nome_apoiador' => 'Ana Souza',
+            'email' => 'ana@example.com',
+            'tipo_interesse' => 'Voluntário',
+        ]);
+        ManifestacaoInteresse::factory()->create(['nome_apoiador' => 'Contato de outra OSC', 'email' => 'outra@example.com']);
+
+        $this->actingAs($osc, 'osc')
+            ->get('/osc/contatos')
+            ->assertOk()
+            ->assertViewIs('osc.contatos')
+            ->assertSee('Ana Souza')
+            ->assertSee('ana@example.com')
             ->assertSee('Voluntário')
-            ->assertSee('ana@example.com');
+            ->assertSee('Doação de livros')
+            ->assertDontSee('Contato de outra OSC')
+            ->assertDontSee('outra@example.com');
+    }
+
+    public function test_contacts_can_be_filtered_by_demand_and_type(): void
+    {
+        $osc = Osc::factory()->create();
+        [$livros, $roupas] = Demanda::factory(2)->for($osc)->create();
+        ManifestacaoInteresse::factory()->for($livros)->create(['nome_apoiador' => 'Ana Livros', 'tipo_interesse' => 'Voluntário']);
+        ManifestacaoInteresse::factory()->for($roupas)->create(['nome_apoiador' => 'Beto Roupas', 'tipo_interesse' => 'Aluno']);
+        $outraDemanda = Demanda::factory()->create();
+        ManifestacaoInteresse::factory()->for($outraDemanda)->create(['nome_apoiador' => 'Contato alheio']);
+
+        $this->actingAs($osc, 'osc');
+        $this->get("/osc/contatos?demanda={$livros->id_demanda}")->assertSee('Ana Livros')->assertDontSee('Beto Roupas');
+        $this->get('/osc/contatos?tipo=Aluno')->assertSee('Beto Roupas')->assertDontSee('Ana Livros');
+
+        // Filtrar por demanda de outra OSC é ignorado e nunca expõe os contatos dela.
+        $this->get("/osc/contatos?demanda={$outraDemanda->id_demanda}")
+            ->assertSee('Ana Livros')
+            ->assertDontSee('Contato alheio');
     }
 
     public function test_an_osc_can_create_a_demand(): void
@@ -108,7 +171,7 @@ class AreaOscTest extends TestCase
         $this->actingAs($osc, 'osc')->get('/osc/demandas/criar')->assertOk();
 
         $this->post('/osc/demandas', $this->demandPayload(['urgencia' => '1']))
-            ->assertRedirect('/osc/painel');
+            ->assertRedirect('/osc/demandas');
 
         $this->assertDatabaseHas('demandas', [
             'id_osc' => $osc->id_osc,
@@ -151,13 +214,13 @@ class AreaOscTest extends TestCase
             ->assertSee($demanda->titulo);
 
         $this->put("/osc/demandas/{$demanda->id_demanda}", $this->demandPayload(['titulo' => 'Título editado']))
-            ->assertRedirect('/osc/painel');
+            ->assertRedirect('/osc/demandas');
         $this->assertSame('Título editado', $demanda->fresh()->titulo);
 
         $this->patch("/osc/demandas/{$demanda->id_demanda}/status", ['status' => Demanda::STATUS_PARCIAL]);
         $this->assertSame(Demanda::STATUS_PARCIAL, $demanda->fresh()->status);
 
-        $this->delete("/osc/demandas/{$demanda->id_demanda}")->assertRedirect('/osc/painel');
+        $this->delete("/osc/demandas/{$demanda->id_demanda}")->assertRedirect('/osc/demandas');
         $this->assertDatabaseMissing('demandas', ['id_demanda' => $demanda->id_demanda]);
     }
 

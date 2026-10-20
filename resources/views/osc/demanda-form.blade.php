@@ -1,9 +1,8 @@
 {{-- Criação e edição de demanda pela OSC (RF03). --}}
 @php($editando = $demanda->exists)
-@php($osc = auth('osc')->user())
-<x-layouts.painel :title="$editando ? 'Editar demanda' : 'Nova demanda'" :nome="$osc->nome" perfil="Perfil da OSC" :iniciais="$osc->iniciais" :inicio="route('osc.painel')" :logout="route('osc.logout')">
+<x-layouts.osc :title="$editando ? 'Editar demanda' : 'Nova demanda'">
     <div class="page--narrow">
-        <a href="{{ route('osc.painel') }}" class="back-link"><x-icon name="back" :size="16" /> Voltar para o painel</a>
+        <a href="{{ route('osc.demandas.index') }}" class="back-link"><x-icon name="back" :size="16" /> Voltar para as demandas</a>
 
         <form method="POST" action="{{ $editando ? route('osc.demandas.update', $demanda) : route('osc.demandas.store') }}" class="form-card">
             @csrf
@@ -45,9 +44,9 @@
             </label>
 
             <div class="form-actions">
-                <a href="{{ route('osc.painel') }}" class="button button--secondary">Cancelar</a>
+                <a href="{{ route('osc.demandas.index') }}" class="button button--secondary">Cancelar</a>
                 <button type="submit" class="button button--primary">{{ $editando ? 'Salvar alterações' : 'Publicar demanda' }}</button>
             </div>
         </form>
     </div>
-</x-layouts.painel>
+</x-layouts.osc>

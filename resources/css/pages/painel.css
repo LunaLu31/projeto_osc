@@ -142,55 +142,153 @@
         display: none;
     }
 
-    /* Contatos dos apoiadores – visíveis apenas no painel privado (RNF06) */
-    .contacts summary {
-        color: var(--color-primary);
-        font-weight: 700;
-        list-style: none;
-    }
-
-    .contacts summary::-webkit-details-marker {
-        display: none;
-    }
-
-    .contacts summary::after {
-        content: ' ▾';
-    }
-
-    .contacts[open] summary::after {
-        content: ' ▴';
-    }
-
-    .contacts ul {
-        display: grid;
-        gap: 10px;
-        margin-top: 12px;
-    }
-
-    .contacts li {
-        min-width: 220px;
-        padding: 10px 12px;
+    /* ---------- Navegação da área da OSC ---------- */
+    .painel-nav {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 34px;
+        padding: 6px;
+        overflow-x: auto;
         border: 1px solid var(--color-line);
-        border-radius: 10px;
-        background: var(--color-surface-soft);
-        font-size: 12px;
-        line-height: 1.5;
+        border-radius: 14px;
+        background: white;
+        scrollbar-width: thin;
     }
 
-    .contacts li a {
-        display: block;
+    .painel-nav a {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        color: var(--color-muted);
+        font-size: 14px;
+        font-weight: 700;
+        transition: color 160ms ease, background 160ms ease;
+    }
+
+    .painel-nav a:hover,
+    .painel-nav a[aria-current='page'] {
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    .painel-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    /* Listas curtas da visão geral */
+    .lista-resumo {
+        display: grid;
+    }
+
+    .lista-resumo li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--color-line-soft);
+        font-size: 14px;
+    }
+
+    .lista-resumo li:last-child {
+        border-bottom: 0;
+    }
+
+    .lista-resumo li > div {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .lista-resumo small {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .lista-resumo time {
+        flex: 0 0 auto;
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    /* Abas de filtro por status */
+    .filtro-abas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .filtro-abas a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        color: var(--color-muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .filtro-abas a span {
+        min-width: 22px;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: var(--color-canvas);
+        font-size: 11px;
+        text-align: center;
+    }
+
+    .filtro-abas a[aria-current='page'] {
+        border-color: var(--color-primary);
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    /* Filtros dos contatos */
+    .filtros-painel {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .filtros-painel .field {
+        margin-top: 0;
+    }
+
+    .filtros-painel .button {
+        height: 47px;
+    }
+
+    .contato-meios a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         color: var(--color-primary);
         overflow-wrap: anywhere;
     }
 
-    .contacts li p {
-        margin-top: 4px;
-        color: var(--color-muted);
-        white-space: pre-line;
+    .contato-meios a + a {
+        margin-top: 6px;
     }
 
-    .contacts__meta {
+    .contato-mensagem {
+        max-width: 320px;
         color: var(--color-muted);
+        white-space: pre-line;
     }
 
     @media (max-width: 1000px) {
@@ -200,7 +298,9 @@
     }
 
     @media (max-width: 780px) {
-        .metric-grid {
+        .metric-grid,
+        .painel-grid,
+        .filtros-painel {
             grid-template-columns: 1fr;
         }
     }

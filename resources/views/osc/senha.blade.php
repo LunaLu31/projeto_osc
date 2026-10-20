@@ -1,9 +1,6 @@
 {{-- Troca da senha inicial da OSC. --}}
-@php($osc = auth('osc')->user())
-<x-layouts.painel title="Alterar senha" :nome="$osc->nome" perfil="Perfil da OSC" :iniciais="$osc->iniciais" :inicio="route('osc.painel')" :logout="route('osc.logout')">
+<x-layouts.osc title="Alterar senha">
     <div class="page--narrow">
-        <a href="{{ route('osc.painel') }}" class="back-link"><x-icon name="back" :size="16" /> Voltar para o painel</a>
-
         <form method="POST" action="{{ route('osc.senha.update') }}" class="form-card">
             @csrf
             @method('PUT')
@@ -32,4 +29,4 @@
             </div>
         </form>
     </div>
-</x-layouts.painel>
+</x-layouts.osc>

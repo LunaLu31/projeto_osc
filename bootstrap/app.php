@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CabecalhosSeguranca;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // CSP, anti-clickjacking, nosniff e HSTS em todas as respostas.
+        $middleware->append(CabecalhosSeguranca::class);
+
         $areaAdmin = fn (Request $request) => $request->is('admin', 'admin/*');
 
         // Visitante em rota protegida vai para o login da área correspondente.

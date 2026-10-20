@@ -29,12 +29,15 @@ Route::prefix('osc')->name('osc.')->group(function () {
         Route::post('/logout', [Osc\AuthController::class, 'destroy'])->name('logout');
         Route::get('/painel', Osc\PainelController::class)->name('painel');
 
+        Route::get('/demandas', [Osc\DemandaController::class, 'index'])->name('demandas.index');
         Route::get('/demandas/criar', [Osc\DemandaController::class, 'create'])->name('demandas.create');
         Route::post('/demandas', [Osc\DemandaController::class, 'store'])->name('demandas.store');
         Route::get('/demandas/{demanda}/editar', [Osc\DemandaController::class, 'edit'])->name('demandas.edit');
         Route::put('/demandas/{demanda}', [Osc\DemandaController::class, 'update'])->name('demandas.update');
         Route::patch('/demandas/{demanda}/status', [Osc\DemandaController::class, 'updateStatus'])->name('demandas.status');
         Route::delete('/demandas/{demanda}', [Osc\DemandaController::class, 'destroy'])->name('demandas.destroy');
+
+        Route::get('/contatos', [Osc\ContatoController::class, 'index'])->name('contatos.index');
 
         Route::get('/senha', [Osc\SenhaController::class, 'edit'])->name('senha.edit');
         Route::put('/senha', [Osc\SenhaController::class, 'update'])->name('senha.update');

@@ -6,6 +6,7 @@ use App\Models\Concerns\TemIniciais;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
@@ -39,5 +40,20 @@ class Osc extends Authenticatable
     public function demandas(): HasMany
     {
         return $this->hasMany(Demanda::class, 'id_osc', 'id_osc');
+    }
+
+    /**
+     * Contatos recebidos em todas as demandas da OSC (painel da OSC).
+     */
+    public function manifestacoes(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            ManifestacaoInteresse::class,
+            Demanda::class,
+            'id_osc',
+            'id_demanda',
+            'id_osc',
+            'id_demanda',
+        );
     }
 }

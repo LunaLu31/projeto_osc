@@ -288,7 +288,23 @@
         margin-top: 26px;
     }
 
-    /* ---------- Alertas ---------- */
+    /* ---------- Anti-spam (x-anti-spam) ---------- */
+    .campo-armadilha {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .turnstile {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 18px;
+    }
+
+        /* ---------- Alertas ---------- */
     .alert {
         display: flex;
         align-items: flex-start;

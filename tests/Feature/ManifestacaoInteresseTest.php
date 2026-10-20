@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Demanda;
 use App\Models\ManifestacaoInteresse;
+use App\Support\Turnstile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class ManifestacaoInteresseTest extends TestCase
@@ -99,6 +102,76 @@ class ManifestacaoInteresseTest extends TestCase
             ->assertTooManyRequests();
     }
 
+    public function test_bots_filling_the_honeypot_are_rejected(): void
+    {
+        $demanda = Demanda::factory()->create();
+
+        $this->post($this->url($demanda), $this->payload(['website' => 'https://spam.example']))
+            ->assertSessionHasErrors('website');
+
+        $this->assertSame(0, ManifestacaoInteresse::count());
+    }
+
+    public function test_submissions_faster_than_a_human_are_rejected(): void
+    {
+        $demanda = Demanda::factory()->create();
+
+        $this->post($this->url($demanda), $this->payload(['_carregado_em' => Crypt::encryptString((string) now()->getTimestamp())]))
+            ->assertSessionHasErrors('_carregado_em');
+        $this->post($this->url($demanda), $this->payload(['_carregado_em' => 'adulterado']))
+            ->assertSessionHasErrors('_carregado_em');
+
+        $this->assertSame(0, ManifestacaoInteresse::count());
+    }
+
+    public function test_turnstile_is_not_required_while_it_is_not_configured(): void
+    {
+        Http::fake();
+        $demanda = Demanda::factory()->create();
+
+        $this->get("/demandas/{$demanda->id_demanda}")->assertDontSee('cf-turnstile');
+        $this->post($this->url($demanda), $this->payload())->assertSessionHasNoErrors();
+
+        Http::assertNothingSent();
+    }
+
+    public function test_turnstile_token_is_verified_when_configured(): void
+    {
+        $this->ativarTurnstile();
+        Http::fake([Turnstile::VERIFICACAO => Http::response(['success' => true])]);
+        $demanda = Demanda::factory()->create();
+
+        $this->get("/demandas/{$demanda->id_demanda}")
+            ->assertSee('cf-turnstile')
+            ->assertSee(Turnstile::SCRIPT);
+
+        $this->post($this->url($demanda), $this->payload([Turnstile::CAMPO => 'token-valido']))
+            ->assertRedirect("/demandas/{$demanda->id_demanda}/obrigado");
+
+        Http::assertSent(fn ($request) => $request['secret'] === 'segredo-teste' && $request['response'] === 'token-valido');
+    }
+
+    public function test_an_invalid_or_missing_turnstile_token_is_rejected(): void
+    {
+        $this->ativarTurnstile();
+        Http::fake([Turnstile::VERIFICACAO => Http::response(['success' => false])]);
+        $demanda = Demanda::factory()->create();
+
+        $this->post($this->url($demanda), $this->payload())->assertSessionHasErrors(Turnstile::CAMPO);
+        $this->post($this->url($demanda), $this->payload([Turnstile::CAMPO => 'token-falso']))
+            ->assertSessionHasErrors(Turnstile::CAMPO);
+
+        $this->assertSame(0, ManifestacaoInteresse::count());
+    }
+
+    private function ativarTurnstile(): void
+    {
+        config([
+            'services.turnstile.site_key' => 'chave-teste',
+            'services.turnstile.secret_key' => 'segredo-teste',
+        ]);
+    }
+
     private function url(Demanda $demanda): string
     {
         return "/demandas/{$demanda->id_demanda}/interesse";
@@ -113,6 +186,8 @@ class ManifestacaoInteresseTest extends TestCase
             'tipo_interesse' => 'Apoiador/Doação',
             'mensagem' => 'Posso ajudar aos sábados.',
             'consentimento' => '1',
+            'website' => '',
+            '_carregado_em' => Crypt::encryptString((string) now()->subSeconds(10)->getTimestamp()),
         ];
     }
 }

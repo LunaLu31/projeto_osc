@@ -1,131 +1,84 @@
-{{-- Painel da OSC: demandas próprias, status e contatos dos interessados (RF03, RF07, RF08). --}}
-<x-layouts.painel title="Painel da OSC" :nome="$osc->nome" perfil="Perfil da OSC" :iniciais="$osc->iniciais" :inicio="route('osc.painel')" :logout="route('osc.logout')">
-    <x-slot:menu>
-        <a href="{{ route('osc.senha.edit') }}" class="button button--ghost button--small"><x-icon name="key" :size="16" /> Alterar senha</a>
-    </x-slot:menu>
-
-    <x-alerts />
-
+{{-- Visão geral do painel da OSC: indicadores, contatos recentes e prazos próximos. --}}
+<x-layouts.osc title="Painel da OSC">
     <section class="dashboard-title">
         <div>
-            <span class="eyebrow">Painel da organização</span>
+            <span class="eyebrow">Visão geral</span>
             <h1>Olá, {{ $osc->nome }}</h1>
             <p>Acompanhe suas demandas e conexões em um só lugar.</p>
         </div>
         <a href="{{ route('osc.demandas.create') }}" class="button button--primary"><x-icon name="plus" /> Nova demanda</a>
     </section>
 
-    <section class="metric-grid" aria-label="Resumo">
+    <section class="metric-grid" aria-label="Indicadores">
         <article>
             <span class="metric-icon metric-icon--blue"><x-icon name="box" /></span>
-            <div><strong>{{ $totalAtivas }}</strong><span>Demandas ativas</span></div>
+            <div>
+                <strong>{{ $metricas['demandas_ativas'] }}</strong><span>Demandas ativas</span>
+                <small>{{ $metricas['demandas_por_status'][\App\Models\Demanda::STATUS_PARCIAL] }} parcialmente atendidas</small>
+            </div>
         </article>
         <article>
             <span class="metric-icon metric-icon--green"><x-icon name="people" /></span>
-            <div><strong>{{ $totalInteressados }}</strong><span>Interessados</span></div>
+            <div>
+                <strong>{{ $metricas['total_contatos'] }}</strong><span>Contatos recebidos</span>
+                <small>{{ $metricas['contatos_recentes'] }} nos últimos {{ \App\Services\MetricasOsc::DIAS_RECENTES }} dias</small>
+            </div>
         </article>
         <article>
             <span class="metric-icon metric-icon--orange"><x-icon name="check" /></span>
-            <div><strong>{{ $totalConcluidas }}</strong><span>Demandas concluídas</span></div>
+            <div><strong>{{ $metricas['demandas_concluidas'] }}</strong><span>Demandas concluídas</span></div>
         </article>
     </section>
 
-    <section class="dashboard-list">
-        <div class="section-heading--compact">
-            <div>
-                <span class="eyebrow">Gestão</span>
-                <h2>Minhas demandas</h2>
+    <div class="painel-grid">
+        <section class="dashboard-list">
+            <div class="section-heading--compact">
+                <div>
+                    <span class="eyebrow">Quem quer ajudar</span>
+                    <h2>Contatos recentes</h2>
+                </div>
+                <a href="{{ route('osc.contatos.index') }}" class="text-link">Ver todos</a>
             </div>
-            <span>{{ $demandas->count() }} no total</span>
-        </div>
+            @if ($contatosRecentes->isEmpty())
+                <p class="empty-state">Os contatos de quem manifestar interesse nas suas demandas aparecerão aqui.</p>
+            @else
+                <ul class="lista-resumo">
+                    @foreach ($contatosRecentes as $contato)
+                        <li>
+                            <div>
+                                <strong>{{ $contato->nome_apoiador }}</strong>
+                                <small>{{ $contato->tipo_interesse }} · {{ $contato->demanda->titulo }}</small>
+                            </div>
+                            <time datetime="{{ $contato->data_manifestacao?->toIso8601String() }}">{{ $contato->data_manifestacao?->format('d/m H:i') }}</time>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
 
-        @if ($demandas->isEmpty())
-            <div class="empty-state">
-                <x-icon name="box" :size="36" />
-                <h3>Nenhuma demanda publicada</h3>
-                <p>Publique a primeira necessidade da sua organização para que apoiadores possam ajudar.</p>
-                <a href="{{ route('osc.demandas.create') }}" class="button button--primary"><x-icon name="plus" /> Nova demanda</a>
+        <section class="dashboard-list">
+            <div class="section-heading--compact">
+                <div>
+                    <span class="eyebrow">Atenção</span>
+                    <h2>Prazos próximos</h2>
+                </div>
+                <span>próximos {{ $diasPrazoProximo }} dias</span>
             </div>
-        @else
-            <div class="table-wrap">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Demanda</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Prazo</th>
-                            <th scope="col">Interessados</th>
-                            <th scope="col">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($demandas as $demanda)
-                            <tr>
-                                <td>
-                                    <div class="data-table__title">
-                                        <strong>{{ $demanda->titulo }}</strong>
-                                        <small>
-                                            {{ $demanda->categoria }} · {{ $demanda->quantidade }} un.
-                                            @if ($demanda->urgencia)
-                                                · <span class="font-bold text-coral">Urgente</span>
-                                            @endif
-                                        </small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <form method="POST" action="{{ route('osc.demandas.status', $demanda) }}" class="status-form">
-                                        @csrf
-                                        @method('PATCH')
-                                        <select name="status" aria-label="Status de {{ $demanda->titulo }}" data-auto-submit>
-                                            @foreach (\App\Models\Demanda::STATUS as $valor => $rotulo)
-                                                <option value="{{ $valor }}" @selected($demanda->status === $valor)>{{ $rotulo }}</option>
-                                            @endforeach
-                                        </select>
-                                        <button type="submit" class="button button--secondary button--small">Salvar</button>
-                                    </form>
-                                </td>
-                                <td>{{ $demanda->prazo?->format('d/m/Y') ?? 'Sem prazo' }}</td>
-                                <td>
-                                    @if ($demanda->manifestacoes->isEmpty())
-                                        <span class="text-muted">Nenhum ainda</span>
-                                    @else
-                                        <details class="contacts">
-                                            <summary>{{ $demanda->manifestacoes->count() }} {{ $demanda->manifestacoes->count() === 1 ? 'contato' : 'contatos' }}</summary>
-                                            <ul>
-                                                @foreach ($demanda->manifestacoes as $interesse)
-                                                    <li>
-                                                        <strong>{{ $interesse->nome_apoiador }}</strong>
-                                                        <span class="contacts__meta">· {{ $interesse->tipo_interesse }} · {{ $interesse->data_manifestacao?->format('d/m/Y H:i') }}</span>
-                                                        @if ($interesse->telefone)
-                                                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $interesse->telefone) }}">{{ $interesse->telefone }}</a>
-                                                        @endif
-                                                        @if ($interesse->email)
-                                                            <a href="mailto:{{ $interesse->email }}">{{ $interesse->email }}</a>
-                                                        @endif
-                                                        @if ($interesse->mensagem)
-                                                            <p>{{ $interesse->mensagem }}</p>
-                                                        @endif
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        </details>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="table-actions">
-                                        <a href="{{ route('osc.demandas.edit', $demanda) }}" class="button button--secondary button--small"><x-icon name="edit" :size="15" /> Editar</a>
-                                        <form method="POST" action="{{ route('osc.demandas.destroy', $demanda) }}" data-confirm="Excluir a demanda “{{ $demanda->titulo }}” e as manifestações recebidas?">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="button button--danger button--small"><x-icon name="trash" :size="15" /> Excluir</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-    </section>
-</x-layouts.painel>
+            @if ($prazosProximos->isEmpty())
+                <p class="empty-state">Nenhuma demanda ativa vence nos próximos {{ $diasPrazoProximo }} dias.</p>
+            @else
+                <ul class="lista-resumo">
+                    @foreach ($prazosProximos as $demanda)
+                        <li>
+                            <div>
+                                <strong>{{ $demanda->titulo }}</strong>
+                                <small><x-status-badge :status="$demanda->status" /> @if ($demanda->urgencia) <span class="badge badge--urgent">Urgente</span> @endif</small>
+                            </div>
+                            <a href="{{ route('osc.demandas.edit', $demanda) }}" class="text-link">{{ $demanda->prazo->format('d/m/Y') }}</a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+    </div>
+</x-layouts.osc>

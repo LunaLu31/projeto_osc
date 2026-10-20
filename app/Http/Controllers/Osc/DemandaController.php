@@ -17,6 +17,25 @@ use Illuminate\View\View;
  */
 class DemandaController extends Controller
 {
+    /**
+     * Gestão das demandas da OSC, com filtro por status.
+     */
+    public function index(Request $request): View
+    {
+        $osc = $request->user('osc');
+        $status = array_key_exists((string) $request->query('status'), Demanda::STATUS) ? $request->query('status') : null;
+
+        return view('osc.demandas', [
+            'demandas' => $osc->demandas()
+                ->withCount('manifestacoes')
+                ->when($status, fn ($q, $status) => $q->where('status', $status))
+                ->latest('data_criacao')
+                ->get(),
+            'statusAtual' => $status,
+            'totaisPorStatus' => $osc->demandas()->toBase()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+        ]);
+    }
+
     public function create(): View
     {
         return view('osc.demanda-form', ['demanda' => new Demanda]);
@@ -26,7 +45,7 @@ class DemandaController extends Controller
     {
         $request->user('osc')->demandas()->create($request->dadosDemanda());
 
-        return redirect()->route('osc.painel')->with('status', 'Demanda publicada com sucesso.');
+        return redirect()->route('osc.demandas.index')->with('status', 'Demanda publicada com sucesso.');
     }
 
     public function edit(Demanda $demanda): View
@@ -42,7 +61,7 @@ class DemandaController extends Controller
 
         $demanda->update($request->dadosDemanda());
 
-        return redirect()->route('osc.painel')->with('status', 'Demanda atualizada.');
+        return redirect()->route('osc.demandas.index')->with('status', 'Demanda atualizada.');
     }
 
     public function updateStatus(Request $request, Demanda $demanda): RedirectResponse
@@ -62,6 +81,6 @@ class DemandaController extends Controller
 
         $demanda->delete();
 
-        return redirect()->route('osc.painel')->with('status', 'Demanda excluída.');
+        return redirect()->route('osc.demandas.index')->with('status', 'Demanda excluída.');
     }
 }

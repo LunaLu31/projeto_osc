@@ -5,3 +5,4 @@
 <meta name="theme-color" content="#347db8">
 <link rel="icon" href="{{ asset('favicon.ico') }}">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+@stack('scripts')

@@ -98,6 +98,8 @@
                     <span class="field__error">{{ $message }}</span>
                 @enderror
 
+                <x-anti-spam />
+
                 <div class="form-actions">
                     <button type="submit" class="button button--primary">Enviar interesse <x-icon name="arrow" /></button>
                 </div>
