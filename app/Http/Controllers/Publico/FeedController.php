@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Publico;
 
 use App\Http\Controllers\Controller;
 use App\Models\Demanda;
-use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
+use App\Services\MetricasRede;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -35,14 +35,16 @@ class FeedController extends Controller
             ->withQueryString()
             ->fragment('demandas');
 
+        $metricas = (new MetricasRede)->resumo();
+
         return view('publico.feed', [
             'demandas' => $demandas,
             'filtros' => $filtros,
-            'totalOscs' => Osc::count(),
-            'demandasAtivas' => Demanda::publicas()->count(),
-            'demandasConcluidas' => Demanda::where('status', Demanda::STATUS_CONCLUIDA)->count(),
-            'totalManifestacoes' => ManifestacaoInteresse::count(),
-            'manifestacoesNoMes' => ManifestacaoInteresse::where('data_manifestacao', '>=', now()->startOfMonth())->count(),
+            'totalOscs' => $metricas['total_oscs'],
+            'demandasAtivas' => $metricas['demandas_ativas'],
+            'demandasConcluidas' => $metricas['demandas_concluidas'],
+            'totalManifestacoes' => $metricas['total_manifestacoes'],
+            'manifestacoesNoMes' => $metricas['manifestacoes_no_mes'],
             'iniciaisOscsDestaque' => Osc::orderBy('nome')->limit(3)->get(['id_osc', 'nome'])->map->iniciais,
         ]);
     }

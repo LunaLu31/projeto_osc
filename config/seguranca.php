@@ -18,4 +18,10 @@ return [
     */
     'hsts_max_age' => (int) env('HSTS_MAX_AGE', 31536000),
 
+    /*
+    | Documentação da API (/docs/api). Sempre visível em APP_ENV=local;
+    | nos demais ambientes, só quando API_DOCS_PUBLIC=true.
+    */
+    'docs_api_publica' => (bool) env('API_DOCS_PUBLIC', false),
+
 ];

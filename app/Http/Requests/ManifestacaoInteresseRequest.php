@@ -39,7 +39,7 @@ class ManifestacaoInteresseRequest extends FormRequest
      * RNF – proteção contra envios automatizados (formulário público, sem login):
      * honeypot (campo invisível que deve ficar vazio), armadilha de tempo e Turnstile.
      */
-    private function regrasAntiSpam(): array
+    protected function regrasAntiSpam(): array
     {
         $regras = [
             'website' => ['prohibited'],

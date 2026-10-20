@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Osc;
 use App\Http\Controllers\Publico;
+use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -67,4 +68,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('/demandas/{demanda}/status', [Admin\DemandaController::class, 'updateStatus'])->name('demandas.status');
         Route::delete('/demandas/{demanda}', [Admin\DemandaController::class, 'destroy'])->name('demandas.destroy');
     });
+});
+
+/*
+| Documentação da API REST (OpenAPI 3.1 gerado pelo Scramble + Swagger UI)
+*/
+Route::middleware(config('scramble.middleware'))->group(function () {
+    Route::view('/docs/api', 'docs.api')->name('docs.api');
+    Scramble::registerJsonSpecificationRoute('/docs/api.json')->name('docs.api.json');
 });

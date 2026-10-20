@@ -27,8 +27,7 @@ class ContatoController extends Controller
 
         $contatos = $osc->manifestacoes()
             ->with('demanda:id_demanda,titulo')
-            ->when($filtros['demanda'], fn ($q, $id) => $q->where('manifestacoes_interesses.id_demanda', $id))
-            ->when($filtros['tipo'], fn ($q, $tipo) => $q->where('tipo_interesse', $tipo))
+            ->filtrar($filtros['demanda'], $filtros['tipo'])
             ->latest('data_manifestacao')
             ->paginate(self::POR_PAGINA)
             ->withQueryString();

@@ -1,0 +1,53 @@
+/* Ajustes do Swagger UI ao design system Redcam (cores e tipografia). */
+@import '@fontsource-variable/dm-sans';
+
+.docs-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px max(5vw, 24px);
+    border-bottom: 1px solid #dce8f2;
+    background: #fff;
+    font-family: 'DM Sans Variable', system-ui, sans-serif;
+}
+
+.docs-cabecalho a {
+    color: #18304b;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+}
+
+.docs-cabecalho span {
+    color: #5e7188;
+    font-size: 13px;
+}
+
+.swagger-ui .topbar {
+    display: none;
+}
+
+.swagger-ui,
+.swagger-ui .info .title,
+.swagger-ui .opblock-tag {
+    font-family: 'DM Sans Variable', system-ui, sans-serif;
+}
+
+.swagger-ui .info .title {
+    color: #18304b;
+}
+
+.swagger-ui .btn.authorize {
+    border-color: #347db8;
+    color: #347db8;
+}
+
+.swagger-ui .btn.authorize svg {
+    fill: #347db8;
+}
+
+.swagger-ui .btn.execute {
+    border-color: #347db8;
+    background: #347db8;
+}

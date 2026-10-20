@@ -27,12 +27,14 @@ class DemandaRequest extends FormRequest
             'quantidade' => ['required', 'integer', 'min:1', 'max:1000000'],
             'descricao' => ['required', 'string', 'max:5000'],
             'prazo' => $prazo,
+            /** Demanda urgente aparece em destaque no topo do feed. */
             'urgencia' => ['nullable', 'boolean'],
         ];
     }
 
     /**
-     * Dados prontos para gravação: checkbox desmarcado vira `false`.
+     * Dados prontos para gravação: no formulário HTML, checkbox desmarcado
+     * não é enviado e significa `false`.
      */
     public function dadosDemanda(): array
     {

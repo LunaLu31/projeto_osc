@@ -36,6 +36,9 @@ class VerificarSeguranca extends Command
             ['Turnstile configurado (anti-robô no formulário público)', Turnstile::ativo(), false],
             ['Assets compilados (npm run build)', is_file(public_path('build/manifest.json')), true],
             ['Servidor do Vite desligado (sem arquivo public/hot)', ! is_file(public_path('hot')), true],
+            ['CORS da API restrito a origens conhecidas (CORS_ALLOWED_ORIGINS sem *)', ! in_array('*', (array) config('cors.allowed_origins'), true), false],
+            ['Tokens da API com expiração (SANCTUM_TOKEN_EXPIRATION)', (int) config('sanctum.expiration') > 0, true],
+            ['Documentação da API não pública (API_DOCS_PUBLIC=false)', ! config('seguranca.docs_api_publica'), false],
         ];
 
         $falhasCriticas = 0;

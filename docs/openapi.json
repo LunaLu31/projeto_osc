@@ -1,0 +1,3729 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "API Redcam",
+        "version": "1.0.0",
+        "description": "API REST da plataforma **UOSCC / Redcam** \u2013 ponte entre organiza\u00e7\u00f5es da sociedade civil (OSCs) de Cama\u00e7ari e apoiadores.\n\n## \u00c1reas\n- **P\u00fablico** \u2013 demandas abertas, estat\u00edsticas da rede e manifesta\u00e7\u00e3o de interesse (sem login).\n- **OSC** \u2013 gest\u00e3o das pr\u00f3prias demandas, status e contatos recebidos.\n- **Admin** \u2013 gest\u00e3o das OSCs e modera\u00e7\u00e3o de todas as demandas.\n\n## Autentica\u00e7\u00e3o\n1. Obtenha um token em `POST /api/v1/osc/tokens` ou `POST /api/v1/admin/tokens`.\n2. Envie-o nas rotas protegidas: `Authorization: Bearer {token}`.\n3. Tokens expiram em 7 dias; encerre com `DELETE .../tokens/atual`.\n\n## Conven\u00e7\u00f5es\n- Corpo e respostas em JSON (`Accept: application/json`).\n- Erros de valida\u00e7\u00e3o: **422** com `message` e `errors` por campo.\n- Listas paginadas trazem `data`, `links` e `meta`.\n- Limites: login 5 tentativas/min por e-mail+IP; manifesta\u00e7\u00f5es 10/min por IP; demais rotas 60/min por usu\u00e1rio ou IP."
+    },
+    "servers": [
+        {
+            "url": "http://localhost/api"
+        }
+    ],
+    "tags": [
+        {
+            "name": "P\u00fablico",
+            "description": "Consulta de demandas e manifesta\u00e7\u00e3o de interesse, sem login."
+        },
+        {
+            "name": "OSC",
+            "description": "\u00c1rea da organiza\u00e7\u00e3o: demandas pr\u00f3prias e contatos recebidos. Requer token de OSC."
+        },
+        {
+            "name": "Administra\u00e7\u00e3o",
+            "description": "Gest\u00e3o das OSCs e modera\u00e7\u00e3o de todas as demandas da rede. Requer token de administrador."
+        }
+    ],
+    "security": [
+        {
+            "http": []
+        }
+    ],
+    "paths": {
+        "/v1/demandas": {
+            "get": {
+                "operationId": "v1.demandas.index",
+                "description": "Demandas com status \"Aberta\" ou \"Parcial\", com as urgentes primeiro (RF04).\nDemandas conclu\u00eddas n\u00e3o aparecem.",
+                "summary": "Listar demandas abertas",
+                "tags": [
+                    "P\u00fablico"
+                ],
+                "parameters": [
+                    {
+                        "name": "busca",
+                        "in": "query",
+                        "description": "Busca no t\u00edtulo da demanda ou no nome da OSC.",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "categoria",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "Alimentos",
+                                "Materiais",
+                                "Voluntariado",
+                                "Vestu\u00e1rio",
+                                "Higiene",
+                                "Educa\u00e7\u00e3o",
+                                "Sa\u00fade",
+                                "Outros",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "Aberta",
+                                "Parcial",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "urgente",
+                        "in": "query",
+                        "description": "Use 1 para listar somente as urgentes.",
+                        "schema": {
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "por_pagina",
+                        "in": "query",
+                        "description": "Itens por p\u00e1gina (padr\u00e3o 12).",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DemandaResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/demandas/{demanda}": {
+            "get": {
+                "operationId": "v1.demandas.show",
+                "description": "Retorna 404 para demandas conclu\u00eddas, que saem da \u00e1rea p\u00fablica (RF07).",
+                "summary": "Detalhar demanda",
+                "tags": [
+                    "P\u00fablico"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/demandas/{demanda}/interesses": {
+            "post": {
+                "operationId": "v1.demandas.interesses.store",
+                "description": "Registra o interesse de um apoiador em uma demanda aberta (RF05/RF06). N\u00e3o exige login.\nInforme ao menos um contato (telefone ou e-mail) e o consentimento LGPD.\nO mesmo telefone ou e-mail s\u00f3 pode manifestar interesse uma vez por demanda.\nLimite: 10 requisi\u00e7\u00f5es por minuto por IP.",
+                "summary": "Manifestar interesse",
+                "tags": [
+                    "P\u00fablico"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Interesse registrado! A OSC vai entrar em contato."
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "demanda_id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "demanda_id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/rede/estatisticas": {
+            "get": {
+                "operationId": "v1.rede.estatisticas",
+                "description": "Totais exibidos na p\u00e1gina inicial: OSCs, demandas por status e manifesta\u00e7\u00f5es.",
+                "summary": "Estat\u00edsticas da rede",
+                "tags": [
+                    "P\u00fablico"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "total_oscs": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "demandas_por_status": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "demandas_ativas": {
+                                                    "type": "number"
+                                                },
+                                                "demandas_concluidas": {
+                                                    "type": "string"
+                                                },
+                                                "total_manifestacoes": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "manifestacoes_no_mes": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "total_oscs",
+                                                "demandas_por_status",
+                                                "demandas_ativas",
+                                                "demandas_concluidas",
+                                                "total_manifestacoes",
+                                                "manifestacoes_no_mes"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/rede/metadados": {
+            "get": {
+                "operationId": "v1.rede.metadados",
+                "description": "Listas usadas em filtros e formul\u00e1rios: categorias, status e tipos de interesse.",
+                "summary": "Valores de refer\u00eancia",
+                "tags": [
+                    "P\u00fablico"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "categorias": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Alimentos"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Materiais"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Voluntariado"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Vestu\u00e1rio"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Higiene"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Educa\u00e7\u00e3o"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Sa\u00fade"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Outros"
+                                                        }
+                                                    ],
+                                                    "minItems": 8,
+                                                    "maxItems": 8
+                                                },
+                                                "status": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "valor": {
+                                                                "type": "string"
+                                                            },
+                                                            "rotulo": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "valor",
+                                                            "rotulo"
+                                                        ]
+                                                    }
+                                                },
+                                                "status_publicos": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Aberta"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Parcial"
+                                                        }
+                                                    ],
+                                                    "minItems": 2,
+                                                    "maxItems": 2
+                                                },
+                                                "tipos_interesse": {
+                                                    "type": "array",
+                                                    "prefixItems": [
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Apoiador/Doa\u00e7\u00e3o"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Volunt\u00e1rio"
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "const": "Aluno"
+                                                        }
+                                                    ],
+                                                    "minItems": 3,
+                                                    "maxItems": 3
+                                                }
+                                            },
+                                            "required": [
+                                                "categorias",
+                                                "status",
+                                                "status_publicos",
+                                                "tipos_interesse"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/osc/tokens": {
+            "post": {
+                "operationId": "v1.osc.tokens.store",
+                "description": "Troca e-mail e senha da OSC por um token Bearer v\u00e1lido por 7 dias (RF01).\nAp\u00f3s 5 tentativas erradas para o mesmo e-mail e IP, o acesso \u00e9 bloqueado por 1 minuto.",
+                "summary": "Entrar (gerar token)",
+                "tags": [
+                    "OSC"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "tipo": {
+                                            "type": "string",
+                                            "const": "Bearer"
+                                        },
+                                        "expira_em": {
+                                            "type": "string"
+                                        },
+                                        "osc": {
+                                            "$ref": "#/components/schemas/OscResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "token",
+                                        "tipo",
+                                        "expira_em",
+                                        "osc"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/osc/tokens/atual": {
+            "delete": {
+                "operationId": "v1.osc.tokens.destroy",
+                "description": "Invalida o token usado nesta requisi\u00e7\u00e3o.",
+                "summary": "Sair (revogar token)",
+                "tags": [
+                    "OSC"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/perfil": {
+            "get": {
+                "operationId": "v1.osc.perfil.show",
+                "summary": "Perfil da OSC autenticada",
+                "tags": [
+                    "OSC"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`OscResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OscResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/perfil/senha": {
+            "put": {
+                "operationId": "v1.osc.perfil.senha",
+                "description": "Troca a senha inicial gerada pelo administrador. Todos os outros tokens da OSC s\u00e3o revogados.",
+                "summary": "Alterar senha",
+                "tags": [
+                    "OSC"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "senha_atual": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "senha_atual",
+                                    "password",
+                                    "password_confirmation"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/painel": {
+            "get": {
+                "operationId": "v1.osc.painel",
+                "description": "Demandas por status e contatos recebidos por tipo de interesse (base dos gr\u00e1ficos da vers\u00e3o B).",
+                "summary": "Indicadores do painel",
+                "tags": [
+                    "OSC"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "demandas_por_status": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "demandas_ativas": {
+                                                    "type": "number"
+                                                },
+                                                "demandas_concluidas": {
+                                                    "type": "string"
+                                                },
+                                                "total_contatos": {
+                                                    "type": "number"
+                                                },
+                                                "contatos_recentes": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "contatos_por_tipo": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "demandas_por_status",
+                                                "demandas_ativas",
+                                                "demandas_concluidas",
+                                                "total_contatos",
+                                                "contatos_recentes",
+                                                "contatos_por_tipo"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/demandas": {
+            "get": {
+                "operationId": "v1.osc.demandas.index",
+                "description": "Todas as demandas da OSC, inclusive as conclu\u00eddas, com o total de contatos de cada uma.",
+                "summary": "Listar minhas demandas",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "Aberta",
+                                "Parcial",
+                                "Conclu\u00edda",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "por_pagina",
+                        "in": "query",
+                        "description": "Itens por p\u00e1gina (padr\u00e3o 20).",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DemandaResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.osc.demandas.store",
+                "description": "A demanda nasce com status \"Aberta\". O prazo n\u00e3o pode estar no passado.",
+                "summary": "Criar demanda",
+                "tags": [
+                    "OSC"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DemandaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/demandas/{demanda}": {
+            "get": {
+                "operationId": "v1.osc.demandas.show",
+                "summary": "Detalhar demanda",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.osc.demandas.destroy",
+                "description": "Exclui tamb\u00e9m as manifesta\u00e7\u00f5es de interesse recebidas.",
+                "summary": "Excluir demanda",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "v1.osc.demandas.update",
+                "description": "Atualiza\u00e7\u00e3o completa: todos os campos s\u00e3o obrigat\u00f3rios. `urgencia` ausente significa `false`.",
+                "summary": "Substituir demanda",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DemandaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "v1.osc.demandas.patch",
+                "description": "Atualiza\u00e7\u00e3o parcial: envie apenas os campos que deseja alterar.",
+                "summary": "Atualizar parte da demanda",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DemandaParcialRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/demandas/{demanda}/status": {
+            "patch": {
+                "operationId": "v1.osc.demandas.status",
+                "description": "\"Conclu\u00edda\" retira a demanda da listagem p\u00fablica (RF07).",
+                "summary": "Alterar status",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Aberta",
+                                            "Parcial",
+                                            "Conclu\u00edda"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/osc/contatos": {
+            "get": {
+                "operationId": "v1.osc.contatos.index",
+                "description": "Apoiadores que manifestaram interesse nas demandas da OSC (RF08), dos mais recentes aos mais antigos.\nDados pessoais protegidos pela LGPD: use-os apenas para responder sobre a demanda indicada (RNF06).",
+                "summary": "Listar contatos recebidos",
+                "tags": [
+                    "OSC"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "query",
+                        "description": "ID de uma demanda da pr\u00f3pria OSC.",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "tipo",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "Apoiador/Doa\u00e7\u00e3o",
+                                "Volunt\u00e1rio",
+                                "Aluno",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "por_pagina",
+                        "in": "query",
+                        "description": "Itens por p\u00e1gina (padr\u00e3o 20).",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ContatoResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ContatoResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/tokens": {
+            "post": {
+                "operationId": "v1.admin.tokens.store",
+                "description": "Troca e-mail e senha do administrador por um token Bearer v\u00e1lido por 7 dias (RF01).",
+                "summary": "Entrar (gerar token)",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "tipo": {
+                                            "type": "string",
+                                            "const": "Bearer"
+                                        },
+                                        "expira_em": {
+                                            "type": "string"
+                                        },
+                                        "admin": {
+                                            "$ref": "#/components/schemas/AdmResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "token",
+                                        "tipo",
+                                        "expira_em",
+                                        "admin"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/v1/admin/tokens/atual": {
+            "delete": {
+                "operationId": "v1.admin.tokens.destroy",
+                "summary": "Sair (revogar token)",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/painel": {
+            "get": {
+                "operationId": "v1.admin.painel",
+                "description": "Total de OSCs, demandas por status e manifesta\u00e7\u00f5es de interesse (RF09).",
+                "summary": "M\u00e9tricas globais",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "admin": {
+                                            "$ref": "#/components/schemas/AdmResource"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "total_oscs": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "demandas_por_status": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "demandas_ativas": {
+                                                    "type": "number"
+                                                },
+                                                "demandas_concluidas": {
+                                                    "type": "string"
+                                                },
+                                                "total_manifestacoes": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "manifestacoes_no_mes": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "total_oscs",
+                                                "demandas_por_status",
+                                                "demandas_ativas",
+                                                "demandas_concluidas",
+                                                "total_manifestacoes",
+                                                "manifestacoes_no_mes"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "admin",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/oscs": {
+            "get": {
+                "operationId": "v1.admin.oscs.index",
+                "summary": "Listar OSCs",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "busca",
+                        "in": "query",
+                        "description": "Busca por nome ou e-mail.",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "por_pagina",
+                        "in": "query",
+                        "description": "Itens por p\u00e1gina (padr\u00e3o 20).",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `OscResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OscResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1.admin.oscs.store",
+                "description": "Se `password` n\u00e3o for enviado, uma senha inicial \u00e9 gerada e devolvida **uma \u00fanica vez**\nem `senha_inicial`. Repasse-a por um canal seguro e oriente a troca no primeiro acesso.",
+                "summary": "Cadastrar OSC",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OscRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OscResource"
+                                        },
+                                        "senha_inicial": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "description": "Presente apenas quando a senha foi gerada pelo sistema."
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "senha_inicial"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/oscs/{osc}": {
+            "get": {
+                "operationId": "v1.admin.oscs.show",
+                "summary": "Detalhar OSC",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "osc",
+                        "in": "path",
+                        "required": true,
+                        "description": "The osc id osc",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`OscResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OscResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.admin.oscs.destroy",
+                "description": "Exclui tamb\u00e9m as demandas da OSC e as manifesta\u00e7\u00f5es recebidas.",
+                "summary": "Excluir OSC",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "osc",
+                        "in": "path",
+                        "required": true,
+                        "description": "The osc id osc",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "v1.admin.oscs.update",
+                "description": "Atualiza\u00e7\u00e3o completa. Envie `password` e `password_confirmation` apenas para redefinir a senha\n(isso tamb\u00e9m revoga os tokens da OSC).",
+                "summary": "Substituir OSC",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "osc",
+                        "in": "path",
+                        "required": true,
+                        "description": "The osc id osc",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OscRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OscResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OscResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "v1.admin.oscs.patch",
+                "description": "Atualiza\u00e7\u00e3o parcial: envie apenas os campos que deseja alterar.",
+                "summary": "Atualizar parte da OSC",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "osc",
+                        "in": "path",
+                        "required": true,
+                        "description": "The osc id osc",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OscParcialRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`OscResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/OscResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/demandas": {
+            "get": {
+                "operationId": "v1.admin.demandas.index",
+                "summary": "Listar todas as demandas",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "Aberta",
+                                "Parcial",
+                                "Conclu\u00edda",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "osc",
+                        "in": "query",
+                        "description": "ID da OSC.",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "busca",
+                        "in": "query",
+                        "description": "Busca no t\u00edtulo da demanda ou no nome da OSC.",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "por_pagina",
+                        "in": "query",
+                        "description": "Itens por p\u00e1gina (padr\u00e3o 20).",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated set of `DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DemandaResource"
+                                            }
+                                        },
+                                        "links": {
+                                            "type": "object",
+                                            "properties": {
+                                                "first": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "last": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "next": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "first",
+                                                "last",
+                                                "prev",
+                                                "next"
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "from": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "minimum": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "minimum": 1
+                                                },
+                                                "links": {
+                                                    "type": "array",
+                                                    "description": "Generated paginator links.",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "url",
+                                                            "label",
+                                                            "active"
+                                                        ]
+                                                    }
+                                                },
+                                                "path": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "Base path for paginator generated URLs."
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "description": "Number of items shown per page.",
+                                                    "minimum": 0
+                                                },
+                                                "to": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ],
+                                                    "description": "Number of the last item in the slice.",
+                                                    "minimum": 1
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "description": "Total number of items being paginated.",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "from",
+                                                "last_page",
+                                                "links",
+                                                "path",
+                                                "per_page",
+                                                "to",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "links",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/demandas/{demanda}": {
+            "get": {
+                "operationId": "v1.admin.demandas.show",
+                "summary": "Detalhar demanda",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "v1.admin.demandas.destroy",
+                "summary": "Excluir demanda",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/admin/demandas/{demanda}/status": {
+            "patch": {
+                "operationId": "v1.admin.demandas.status",
+                "summary": "Alterar status",
+                "tags": [
+                    "Administra\u00e7\u00e3o"
+                ],
+                "parameters": [
+                    {
+                        "name": "demanda",
+                        "in": "path",
+                        "required": true,
+                        "description": "The demanda id demanda",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Aberta",
+                                            "Parcial",
+                                            "Conclu\u00edda"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DemandaResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DemandaResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "Token de outro perfil (ex.: token de OSC em rota de administra\u00e7\u00e3o).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Limite de requisi\u00e7\u00f5es excedido. Aguarde o tempo indicado no cabe\u00e7alho `Retry-After`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "http": {
+                "type": "http",
+                "description": "Token obtido em `POST /api/v1/osc/tokens` ou `POST /api/v1/admin/tokens`.",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "AdmResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "iniciais": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "nome",
+                    "iniciais",
+                    "email"
+                ],
+                "title": "AdmResource"
+            },
+            "ContatoResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "telefone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tipo_interesse": {
+                        "type": "string",
+                        "enum": [
+                            "Apoiador/Doa\u00e7\u00e3o",
+                            "Volunt\u00e1rio",
+                            "Aluno"
+                        ]
+                    },
+                    "mensagem": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "recebido_em": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "demanda": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "titulo": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "titulo"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "nome",
+                    "telefone",
+                    "email",
+                    "tipo_interesse",
+                    "mensagem",
+                    "recebido_em"
+                ],
+                "title": "ContatoResource"
+            },
+            "DemandaParcialRequest": {
+                "type": "object",
+                "description": "PATCH de demanda: valida e grava somente os campos enviados.",
+                "properties": {
+                    "titulo": {
+                        "type": "string",
+                        "maxLength": 150
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "enum": [
+                            "Alimentos",
+                            "Materiais",
+                            "Voluntariado",
+                            "Vestu\u00e1rio",
+                            "Higiene",
+                            "Educa\u00e7\u00e3o",
+                            "Sa\u00fade",
+                            "Outros"
+                        ]
+                    },
+                    "quantidade": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000000
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "maxLength": 5000
+                    },
+                    "prazo": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "urgencia": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    }
+                },
+                "title": "DemandaParcialRequest"
+            },
+            "DemandaRequest": {
+                "type": "object",
+                "description": "Valida\u00e7\u00e3o de cria\u00e7\u00e3o/edi\u00e7\u00e3o de demandas (RF03).\nA autoriza\u00e7\u00e3o \u00e9 feita pelo middleware/controller.",
+                "properties": {
+                    "titulo": {
+                        "type": "string",
+                        "maxLength": 150
+                    },
+                    "categoria": {
+                        "type": "string",
+                        "enum": [
+                            "Alimentos",
+                            "Materiais",
+                            "Voluntariado",
+                            "Vestu\u00e1rio",
+                            "Higiene",
+                            "Educa\u00e7\u00e3o",
+                            "Sa\u00fade",
+                            "Outros"
+                        ]
+                    },
+                    "quantidade": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000000
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "maxLength": 5000
+                    },
+                    "prazo": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "urgencia": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "description": "Demanda urgente aparece em destaque no topo do feed."
+                    }
+                },
+                "required": [
+                    "titulo",
+                    "categoria",
+                    "quantidade",
+                    "descricao",
+                    "prazo"
+                ],
+                "title": "DemandaRequest"
+            },
+            "DemandaResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "titulo": {
+                        "type": "string"
+                    },
+                    "categoria": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "quantidade": {
+                        "type": "integer"
+                    },
+                    "prazo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Data limite no formato AAAA-MM-DD."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "Aberta",
+                            "Parcial",
+                            "Conclu\u00edda"
+                        ]
+                    },
+                    "status_rotulo": {
+                        "type": "string"
+                    },
+                    "urgente": {
+                        "type": "boolean"
+                    },
+                    "criada_em": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "atualizada_em": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "osc": {
+                        "$ref": "#/components/schemas/OscPublicaResource"
+                    },
+                    "total_contatos": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "titulo",
+                    "categoria",
+                    "descricao",
+                    "quantidade",
+                    "prazo",
+                    "status",
+                    "status_rotulo",
+                    "urgente",
+                    "criada_em",
+                    "atualizada_em"
+                ],
+                "title": "DemandaResource"
+            },
+            "LoginRequest": {
+                "type": "object",
+                "description": "Login por e-mail e senha de OSCs e administradores (RF01), com bloqueio\ntempor\u00e1rio ap\u00f3s tentativas seguidas para o mesmo e-mail e IP.\nUsado pelo site (sess\u00e3o) e pela API (token Bearer).",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "dispositivo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Nome do dispositivo/cliente que receber\u00e1 o token (somente API).",
+                        "maxLength": 100
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "title": "LoginRequest"
+            },
+            "OscParcialRequest": {
+                "type": "object",
+                "description": "PATCH de OSC: valida e grava somente os campos enviados.",
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "maxLength": 150
+                    },
+                    "area_atuacao": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "maxLength": 5000
+                    },
+                    "endereco": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 150
+                    },
+                    "password": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "password_confirmation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "title": "OscParcialRequest"
+            },
+            "OscPublicaResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "iniciais": {
+                        "type": "string"
+                    },
+                    "area_atuacao": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "endereco": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "nome",
+                    "iniciais",
+                    "area_atuacao",
+                    "descricao",
+                    "endereco"
+                ],
+                "title": "OscPublicaResource"
+            },
+            "OscRequest": {
+                "type": "object",
+                "description": "Valida\u00e7\u00e3o do cadastro/edi\u00e7\u00e3o de OSCs pelo administrador (RF02).",
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "maxLength": 150
+                    },
+                    "area_atuacao": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "maxLength": 5000
+                    },
+                    "endereco": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 150
+                    },
+                    "password": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "password_confirmation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "nome",
+                    "area_atuacao",
+                    "descricao",
+                    "endereco",
+                    "telefone",
+                    "email"
+                ],
+                "title": "OscRequest"
+            },
+            "OscResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "iniciais": {
+                        "type": "string"
+                    },
+                    "area_atuacao": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "endereco": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "telefone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "cadastrada_em": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "total_demandas": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "nome",
+                    "iniciais",
+                    "area_atuacao",
+                    "descricao",
+                    "endereco",
+                    "telefone",
+                    "email",
+                    "cadastrada_em"
+                ],
+                "title": "OscResource"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "AuthenticationException": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
