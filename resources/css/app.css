@@ -1,11 +1,46 @@
+/*
+ * Redcam – design system
+ * Ponto de entrada do Vite. Tokens no @theme; componentes em camadas,
+ * para que utilitários do Tailwind possam sobrescrevê-los quando preciso.
+ */
 @import 'tailwindcss';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/manrope';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './pages/feed.css';
+@import './pages/demanda.css';
+@import './pages/painel.css';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+
+@theme static {
+    --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+
+    --color-ink: #18304b;
+    --color-muted: #5e7188;
+    --color-primary: #347db8;
+    --color-primary-dark: #245d8d;
+    --color-primary-light: #e2f1fc;
+    --color-lime: #b9e1fa;
+    --color-coral: #e55f46;
+    --color-coral-dark: #a33f2d;
+    --color-coral-light: #fff0ec;
+    --color-blue: #456ba1;
+    --color-blue-light: #eaf2ff;
+    --color-warning-light: #fff8e6;
+    --color-warning-line: #e8cf8e;
+    --color-surface: #ffffff;
+    --color-surface-soft: #f8fbfe;
+    --color-canvas: #f5f9fd;
+    --color-line: #dce8f2;
+    --color-line-soft: #e8eef4;
+    --color-line-strong: #bdd2e4;
+
+    --shadow-card: 0 22px 60px rgb(28 66 103 / 0.1);
+    --shadow-button: 0 9px 20px rgb(52 125 184 / 0.17);
 }

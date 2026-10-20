@@ -1,15 +1,36 @@
 <?php
+
 namespace App\Models;
-use Illuminate\Database\Eloquent\Model;
 
-class Adm extends Model
+use App\Models\Concerns\TemIniciais;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+/**
+ * Usuário autenticável pelo guard `admin` (config/auth.php).
+ */
+class Adm extends Authenticatable
 {
-    protected $table = 'adms';
-    protected $primaryKey = 'id_admin';
-    public $timestamps = false;
-    protected $fillable = ['nome', 'email', 'senha_hash','data_cadastro'];
+    use HasFactory, TemIniciais;
 
-    public function oscs()
+    /** Coluna da senha hasheada com password_hash()/bcrypt (RNF05). */
+    protected $authPasswordName = 'senha_hash';
+
+    /** O esquema não tem coluna remember_token. */
+    protected $rememberTokenName = '';
+
+    protected $table = 'adms';
+
+    protected $primaryKey = 'id_admin';
+
+    public $timestamps = false;
+
+    protected $fillable = ['nome', 'email', 'senha_hash'];
+
+    protected $hidden = ['senha_hash'];
+
+    public function oscs(): HasMany
     {
         return $this->hasMany(Osc::class, 'id_admin', 'id_admin');
     }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Adm;
+use App\Models\Osc;
 use App\Models\User;
 
 return [
@@ -42,6 +44,18 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Área da OSC (RF01)
+        'osc' => [
+            'driver' => 'session',
+            'provider' => 'oscs',
+        ],
+
+        // Portal administrativo (RF01)
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'adms',
+        ],
     ],
 
     /*
@@ -65,6 +79,16 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'oscs' => [
+            'driver' => 'eloquent',
+            'model' => Osc::class,
+        ],
+
+        'adms' => [
+            'driver' => 'eloquent',
+            'model' => Adm::class,
         ],
 
         // 'users' => [

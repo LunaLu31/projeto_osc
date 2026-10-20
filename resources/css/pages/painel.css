@@ -1,0 +1,218 @@
+@layer components {
+    /* ---------- Painéis da OSC (RF08) e do administrador (RF09) ---------- */
+    .dashboard-title {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 22px;
+    }
+
+    .dashboard-title h1 {
+        margin: 7px 0;
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 700;
+        letter-spacing: -0.045em;
+    }
+
+    .dashboard-title p {
+        color: var(--color-muted);
+    }
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 32px 0;
+    }
+
+    .metric-grid article {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 21px;
+        border: 1px solid var(--color-line);
+        border-radius: 16px;
+        background: white;
+    }
+
+    .metric-grid article > div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .metric-grid strong {
+        font-family: var(--font-display);
+        font-size: 24px;
+    }
+
+    .metric-grid span {
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .metric-grid small {
+        margin-top: 2px;
+        color: var(--color-muted);
+        font-size: 11px;
+    }
+
+    .metric-icon {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 14px;
+    }
+
+    .metric-icon--blue {
+        background: var(--color-blue-light);
+        color: var(--color-blue);
+    }
+
+    .metric-icon--green {
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    .metric-icon--orange {
+        background: var(--color-coral-light);
+        color: var(--color-coral);
+    }
+
+    .dashboard-list {
+        padding: 28px;
+        border: 1px solid var(--color-line);
+        border-radius: 18px;
+        background: white;
+    }
+
+    .dashboard-list + .dashboard-list {
+        margin-top: 20px;
+    }
+
+    .section-heading--compact {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .section-heading--compact h2 {
+        margin-top: 4px;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .section-heading--compact span:last-child {
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .admin-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+        align-items: start;
+        gap: 20px;
+    }
+
+    .admin-grid > * {
+        min-width: 0;
+    }
+
+    /* Alteração de status em linha (RF07) */
+    .status-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-form select {
+        height: 36px;
+        max-width: 190px;
+        padding: 0 10px;
+        border: 1px solid var(--color-line);
+        border-radius: 10px;
+        background: var(--color-surface-soft);
+        font-size: 13px;
+    }
+
+    .js .status-form .button {
+        display: none;
+    }
+
+    /* Contatos dos apoiadores – visíveis apenas no painel privado (RNF06) */
+    .contacts summary {
+        color: var(--color-primary);
+        font-weight: 700;
+        list-style: none;
+    }
+
+    .contacts summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .contacts summary::after {
+        content: ' ▾';
+    }
+
+    .contacts[open] summary::after {
+        content: ' ▴';
+    }
+
+    .contacts ul {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .contacts li {
+        min-width: 220px;
+        padding: 10px 12px;
+        border: 1px solid var(--color-line);
+        border-radius: 10px;
+        background: var(--color-surface-soft);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .contacts li a {
+        display: block;
+        color: var(--color-primary);
+        overflow-wrap: anywhere;
+    }
+
+    .contacts li p {
+        margin-top: 4px;
+        color: var(--color-muted);
+        white-space: pre-line;
+    }
+
+    .contacts__meta {
+        color: var(--color-muted);
+    }
+
+    @media (max-width: 1000px) {
+        .admin-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 780px) {
+        .metric-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .dashboard-title {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .dashboard-list {
+            padding: 20px 15px;
+        }
+    }
+}
