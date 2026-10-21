@@ -107,6 +107,29 @@ class AreaOscTest extends TestCase
                 ->where('prazosProximos.0.titulo', 'Doação de livros'));
     }
 
+    public function test_overview_chart_counts_contacts_per_month_in_the_last_six_months(): void
+    {
+        $this->travelTo('2026-10-15 12:00:00');
+        $osc = Osc::factory()->create();
+        $demanda = Demanda::factory()->for($osc)->create();
+
+        foreach (['2026-04-30 23:59:00', '2026-05-01 00:10:00', '2026-08-31 23:30:00', '2026-10-02 09:00:00', '2026-10-14 18:00:00'] as $data) {
+            ManifestacaoInteresse::factory()->for($demanda)->create(['data_manifestacao' => $data]);
+        }
+        ManifestacaoInteresse::factory()->create(['data_manifestacao' => '2026-10-10 10:00:00']);
+
+        $this->actingAs($osc, 'osc')
+            ->get('/osc/painel')
+            ->assertInertia(fn (Assert $pagina) => $pagina->where('metricas.contatos_por_mes', [
+                ['mes' => '2026-05', 'total' => 1],
+                ['mes' => '2026-06', 'total' => 0],
+                ['mes' => '2026-07', 'total' => 0],
+                ['mes' => '2026-08', 'total' => 1],
+                ['mes' => '2026-09', 'total' => 0],
+                ['mes' => '2026-10', 'total' => 2],
+            ]));
+    }
+
     public function test_demands_page_lists_only_its_demands_and_filters_by_status(): void
     {
         $osc = Osc::factory()->create();

@@ -57,12 +57,6 @@ const caminhos = {
         </>
     ),
     menu: <path d="M4 7h16M4 12h16M4 17h16" />,
-    monitor: (
-        <>
-            <rect x="3" y="4" width="18" height="12" rx="2" />
-            <path d="M8 20h8M12 16v4" />
-        </>
-    ),
     moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />,
     people: (
         <>

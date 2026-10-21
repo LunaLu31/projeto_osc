@@ -24,8 +24,6 @@ export type MetricasOsc = Json<'v1.osc.painel'>['data'];
 /** Lista paginada no formato dos ResourceCollections do Laravel (data, links e meta). */
 export type Paginado<T> = Omit<Json<'v1.demandas.index'>, 'data'> & { data: T[] };
 
-export type Tema = 'sistema' | 'claro' | 'escuro';
-
 export interface UsuarioLogado {
     id: number;
     nome: string;
@@ -37,8 +35,6 @@ export interface PropsCompartilhadas {
     app: { nome: string };
     auth: { osc: UsuarioLogado | null; admin: UsuarioLogado | null };
     flash: { status: string | null; erro: string | null; senhaInicial: string | null };
-    /** Preferência de tema (cookie `tema`), aplicada em data-theme no <html>. */
-    tema: Tema;
     referencias: {
         categorias: string[];
         status: Record<StatusDemanda, string>;

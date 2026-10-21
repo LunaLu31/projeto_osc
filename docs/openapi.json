@@ -977,6 +977,24 @@
                                                     "additionalProperties": {
                                                         "type": "integer"
                                                     }
+                                                },
+                                                "contatos_por_mes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "mes": {
+                                                                "type": "string"
+                                                            },
+                                                            "total": {
+                                                                "type": "integer"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "mes",
+                                                            "total"
+                                                        ]
+                                                    }
                                                 }
                                             },
                                             "required": [
@@ -985,7 +1003,8 @@
                                                 "demandas_concluidas",
                                                 "total_contatos",
                                                 "contatos_recentes",
-                                                "contatos_por_tipo"
+                                                "contatos_por_tipo",
+                                                "contatos_por_mes"
                                             ]
                                         }
                                     },

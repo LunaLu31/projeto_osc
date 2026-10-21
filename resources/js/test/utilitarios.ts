@@ -21,7 +21,6 @@ export function propsCompartilhadas(extra: Partial<PropsCompartilhadas> = {}): P
         app: { nome: 'Redcam' },
         auth: { osc: null, admin: null },
         flash: { status: null, erro: null, senhaInicial: null },
-        tema: 'sistema',
         referencias: {
             categorias: ['Alimentos', 'Higiene'],
             status: { Aberta: 'Aberta', Parcial: 'Parcialmente atendida', Concluída: 'Concluída' },

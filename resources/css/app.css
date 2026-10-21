@@ -108,6 +108,10 @@
     --color-step-line: light-dark(#9dbbd4, #3b5876);
     --color-step-number: light-dark(#5e7188, #7e98b3);
     --color-step-border: light-dark(#c8deef, #2c4560);
+    /* Gráficos: série única no azul da marca. Validada nos dois temas (faixa de luminosidade
+       OKLCH, croma mínimo e contraste ≥ 3:1 sobre a superfície); o escuro tem o próprio tom. */
+    --color-grafico-serie: light-dark(#2f70a6, #4a93d0);
+    --color-grafico-serie-ativa: light-dark(#245d8d, #6cb2ec);
 
     --shadow-card: 0 22px 60px color-mix(in srgb, var(--color-sombra) 10%, transparent);
     --shadow-button: 0 9px 20px color-mix(in srgb, var(--color-accent) 17%, transparent);

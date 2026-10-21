@@ -5,14 +5,15 @@ namespace App\Support;
 use Illuminate\Http\Request;
 
 /**
- * Preferência de tema visual (claro, escuro ou do sistema), guardada no cookie `tema`.
- * Lida no servidor para que o HTML (inclusive o do SSR) já chegue no tema certo.
+ * Tema visual escolhido (claro ou escuro), guardado no cookie `tema`.
+ * Lido no servidor para que o HTML (inclusive o do SSR) já chegue no tema certo.
+ * Sem escolha salva, vale "sistema": o tema do dispositivo (prefers-color-scheme).
  */
 class Tema
 {
     public const COOKIE = 'tema';
 
-    public const OPCOES = ['sistema', 'claro', 'escuro'];
+    public const OPCOES = ['claro', 'escuro'];
 
     public static function atual(Request $request): string
     {

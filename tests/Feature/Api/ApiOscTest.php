@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Demanda;
 use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
+use App\Services\MetricasOsc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -126,7 +127,9 @@ class ApiOscTest extends TestCase
             ->assertJsonPath('data.demandas_ativas', 1)
             ->assertJsonPath('data.demandas_concluidas', 1)
             ->assertJsonPath('data.total_contatos', 1)
-            ->assertJsonPath('data.contatos_por_tipo.Aluno', 1);
+            ->assertJsonPath('data.contatos_por_tipo.Aluno', 1)
+            ->assertJsonCount(MetricasOsc::MESES_GRAFICO, 'data.contatos_por_mes')
+            ->assertJsonPath('data.contatos_por_mes.5', ['mes' => now()->format('Y-m'), 'total' => 1]);
     }
 
     public function test_change_password_revokes_other_tokens(): void

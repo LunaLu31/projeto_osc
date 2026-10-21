@@ -127,4 +127,13 @@ class FeedPublicoTest extends TestCase
             ->assertNotFound()
             ->assertExactJson(['message' => 'O registro solicitado não foi encontrado.']);
     }
+
+    public function test_page_arrives_in_the_chosen_theme_or_follows_the_device(): void
+    {
+        $this->withUnencryptedCookie('tema', 'escuro')->get('/')->assertSee('data-theme="escuro"', false);
+        $this->withUnencryptedCookie('tema', 'claro')->get('/')->assertSee('data-theme="claro"', false);
+
+        // Sem escolha (ou com a antiga opção "sistema"), vale o tema do dispositivo.
+        $this->withUnencryptedCookie('tema', 'sistema')->get('/')->assertSee('data-theme="sistema"', false);
+    }
 }

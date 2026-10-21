@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Models\Demanda;
 use App\Models\ManifestacaoInteresse;
-use App\Support\Tema;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -34,7 +33,6 @@ class HandleInertiaRequests extends Middleware
                 'erro' => $request->session()->get('erro'),
                 'senhaInicial' => $request->session()->get('senha_inicial'),
             ],
-            'tema' => Tema::atual($request),
             'referencias' => [
                 'categorias' => Demanda::CATEGORIAS,
                 'status' => Demanda::STATUS,

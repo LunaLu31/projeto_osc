@@ -107,7 +107,17 @@
         transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
     }
 
-    /* Aberto pelo botão do menu (resources/js/layouts/LayoutSite.tsx). */
+    /* Ponte invisível sobre o espaço entre o botão e o menu: o mouse atravessa sem fechá-lo. */
+    .nav::before {
+        position: absolute;
+        right: 0;
+        bottom: 100%;
+        left: 0;
+        height: 14px;
+        content: '';
+    }
+
+    /* Aberto pelo botão do menu ou ao passar o mouse (resources/js/layouts/LayoutSite.tsx). */
     .nav--open {
         opacity: 1;
         visibility: visible;

@@ -1101,6 +1101,10 @@ export interface operations {
                             contatos_por_tipo: {
                                 [key: string]: number;
                             };
+                            contatos_por_mes: {
+                                mes: string;
+                                total: number;
+                            }[];
                         };
                     };
                 };

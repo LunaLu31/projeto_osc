@@ -9,13 +9,16 @@ use App\Services\Concerns\ContaPorValor;
 
 /**
  * Indicadores do painel da OSC. Centraliza as consultas agregadas para que
- * a visão geral (e, na versão B, os gráficos) usem a mesma fonte de dados.
+ * a visão geral, os gráficos e a API usem a mesma fonte de dados.
  */
 class MetricasOsc
 {
     use ContaPorValor;
 
     public const DIAS_RECENTES = 30;
+
+    /** Meses exibidos no gráfico de contatos (o atual e os anteriores). */
+    public const MESES_GRAFICO = 6;
 
     public function __construct(private Osc $osc) {}
 
@@ -26,7 +29,8 @@ class MetricasOsc
      *     demandas_concluidas: int,
      *     total_contatos: int,
      *     contatos_recentes: int,
-     *     contatos_por_tipo: array<string, int>
+     *     contatos_por_tipo: array<string, int>,
+     *     contatos_por_mes: list<array{mes: string, total: int}>
      * }
      */
     public function resumo(): array
@@ -45,6 +49,33 @@ class MetricasOsc
                 ->where('data_manifestacao', '>=', now()->subDays(self::DIAS_RECENTES))
                 ->count(),
             'contatos_por_tipo' => $porTipo,
+            'contatos_por_mes' => $this->contatosPorMes(),
         ];
+    }
+
+    /**
+     * Contatos recebidos por mês (AAAA-MM), do mais antigo ao atual, com zero nos meses vazios.
+     * Agrupa em PHP, no fuso da aplicação, para não depender das funções de data de cada banco.
+     *
+     * @return list<array{mes: string, total: int}>
+     */
+    private function contatosPorMes(): array
+    {
+        $inicio = now()->startOfMonth()->subMonths(self::MESES_GRAFICO - 1);
+
+        $totais = $this->osc->manifestacoes()
+            ->where('data_manifestacao', '>=', $inicio)
+            ->toBase()
+            ->pluck('data_manifestacao')
+            ->countBy(fn (string $data) => substr($data, 0, 7));
+
+        $serie = [];
+
+        for ($i = 0; $i < self::MESES_GRAFICO; $i++) {
+            $mes = $inicio->copy()->addMonths($i)->format('Y-m');
+            $serie[] = ['mes' => $mes, 'total' => (int) ($totais[$mes] ?? 0)];
+        }
+
+        return $serie;
     }
 }

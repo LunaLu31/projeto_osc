@@ -1,9 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { route } from 'ziggy-js';
 import AlternarTema from '@/components/AlternarTema';
 import Icone from '@/components/Icone';
 import Logo from '@/components/Logo';
+
+/** Tempo para fechar ao tirar o mouse: tolera o trajeto do botão até o menu. */
+const ATRASO_FECHAR_MS = 250;
 
 const DESCRICAO_PADRAO =
     'Encontre necessidades reais de organizações sociais de Camaçari e ajude com doações, voluntariado ou conhecimento.';
@@ -20,7 +23,56 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
     const [menuAberto, setMenuAberto] = useState(false);
     const menu = useRef<HTMLDivElement>(null);
     const botaoMenu = useRef<HTMLButtonElement>(null);
+    // Aberto só pelo mouse por cima (fecha ao sair); um clique o fixa aberto.
+    const abertoPorHover = useRef(false);
+    const temporizadorFechar = useRef<number | undefined>(undefined);
     const feed = route('feed');
+
+    const cancelarFechamento = () => window.clearTimeout(temporizadorFechar.current);
+
+    // Só mouse: no toque, "entrar" e clicar acontecem juntos e o clique já abre o menu.
+    const abrirAoPassarMouse = (evento: PointerEvent) => {
+        if (evento.pointerType !== 'mouse') {
+            return;
+        }
+
+        cancelarFechamento();
+
+        if (!menuAberto) {
+            abertoPorHover.current = true;
+            setMenuAberto(true);
+        }
+    };
+
+    const fecharAoSairMouse = (evento: PointerEvent) => {
+        if (evento.pointerType !== 'mouse' || !abertoPorHover.current) {
+            return;
+        }
+
+        temporizadorFechar.current = window.setTimeout(() => {
+            abertoPorHover.current = false;
+            setMenuAberto(false);
+        }, ATRASO_FECHAR_MS);
+    };
+
+    const alternarPeloBotao = () => {
+        cancelarFechamento();
+
+        if (abertoPorHover.current) {
+            abertoPorHover.current = false;
+            return;
+        }
+
+        setMenuAberto((aberto) => !aberto);
+    };
+
+    useEffect(() => cancelarFechamento, []);
+
+    useEffect(() => {
+        if (!menuAberto) {
+            abertoPorHover.current = false;
+        }
+    }, [menuAberto]);
 
     useEffect(() => {
         if (!menuAberto) {
@@ -65,7 +117,12 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
             </a>
 
             <header className="site-header sticky top-0 z-40 flex min-h-[70px] items-center justify-between gap-4 px-[max(5vw,24px)] md:min-h-[82px]">
-                <div className="navigation-menu" ref={menu}>
+                <div
+                    className="navigation-menu"
+                    ref={menu}
+                    onPointerEnter={abrirAoPassarMouse}
+                    onPointerLeave={fecharAoSairMouse}
+                >
                     <button
                         ref={botaoMenu}
                         type="button"
@@ -73,7 +130,7 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
                         aria-controls="menu-principal"
                         aria-expanded={menuAberto}
                         aria-label={menuAberto ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
-                        onClick={() => setMenuAberto((aberto) => !aberto)}
+                        onClick={alternarPeloBotao}
                     >
                         <Icone nome={menuAberto ? 'close' : 'menu'} />
                     </button>

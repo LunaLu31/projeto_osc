@@ -1,34 +1,40 @@
-import { useState } from 'react';
-import { usePropsPagina } from '@/lib/pagina';
-import type { Tema } from '@/types';
-import Icone, { type NomeIcone } from './Icone';
+import Icone from './Icone';
 
-const ORDEM: Tema[] = ['sistema', 'claro', 'escuro'];
-const ROTULOS: Record<Tema, string> = { sistema: 'do sistema', claro: 'claro', escuro: 'escuro' };
-const ICONES: Record<Tema, NomeIcone> = { sistema: 'monitor', claro: 'sun', escuro: 'moon' };
 const UM_ANO = 60 * 60 * 24 * 365;
 
-/** Alterna o tema (sistema → claro → escuro) e lembra a escolha no cookie `tema`. */
-export default function AlternarTema() {
-    const { tema: temaInicial } = usePropsPagina();
-    const [tema, setTema] = useState<Tema>(temaInicial);
-    const proximo = ORDEM[(ORDEM.indexOf(tema) + 1) % ORDEM.length];
+/** Tema em uso agora: o escolhido (data-theme) ou, sem escolha salva, o do dispositivo. */
+function temaEscuroAtivo(): boolean {
+    const escolhido = document.documentElement.dataset.theme;
 
+    if (escolhido === 'claro' || escolhido === 'escuro') {
+        return escolhido === 'escuro';
+    }
+
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+}
+
+/**
+ * Alterna entre os temas claro e escuro e lembra a escolha no cookie `tema`.
+ * Ícone e rótulo seguem a variante `dark:` do CSS, então o HTML do servidor
+ * já sai certo mesmo antes de existir uma escolha (quando vale o tema do dispositivo).
+ */
+export default function AlternarTema() {
     const alternar = () => {
-        setTema(proximo);
+        const proximo = temaEscuroAtivo() ? 'claro' : 'escuro';
         document.documentElement.dataset.theme = proximo;
         document.cookie = `tema=${proximo}; path=/; max-age=${UM_ANO}; samesite=lax`;
     };
 
     return (
-        <button
-            type="button"
-            className="menu-button"
-            onClick={alternar}
-            aria-label={`Tema ${ROTULOS[tema]}. Mudar para tema ${ROTULOS[proximo]}`}
-            title={`Tema ${ROTULOS[tema]}`}
-        >
-            <Icone nome={ICONES[tema]} />
+        <button type="button" className="menu-button" onClick={alternar} title="Alternar tema claro/escuro">
+            <span className="grid place-items-center dark:hidden">
+                <Icone nome="sun" />
+                <span className="sr-only">Tema claro. Mudar para tema escuro</span>
+            </span>
+            <span className="hidden place-items-center dark:grid">
+                <Icone nome="moon" />
+                <span className="sr-only">Tema escuro. Mudar para tema claro</span>
+            </span>
         </button>
     );
 }
