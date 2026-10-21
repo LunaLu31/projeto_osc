@@ -8,7 +8,8 @@ use App\Models\Demanda;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ManifestacaoInteresseController extends Controller
 {
@@ -34,12 +35,14 @@ class ManifestacaoInteresseController extends Controller
     /**
      * Tela de sucesso exibida após o envio (RF06).
      */
-    public function obrigado(Demanda $demanda): View|RedirectResponse
+    public function obrigado(Demanda $demanda): Response|RedirectResponse
     {
         if ((int) session('interesse_registrado') !== (int) $demanda->id_demanda) {
             return redirect()->route('demandas.show', $demanda);
         }
 
-        return view('publico.obrigado', ['demanda' => $demanda->load('osc:id_osc,nome')]);
+        return Inertia::render('Publico/Obrigado', [
+            'organizacao' => $demanda->osc()->value('nome'),
+        ]);
     }
 }

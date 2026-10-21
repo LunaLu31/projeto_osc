@@ -1,0 +1,21 @@
+/*
+ * Temas claro e escuro.
+ *
+ * O <html> recebe data-theme="claro" | "escuro" | "sistema" a partir do cookie `tema`,
+ * lido no servidor (assim o HTML do SSR já chega no tema certo, sem "piscar").
+ * Os tokens usam light-dark(); aqui só se escolhe qual lado vale.
+ */
+@layer base {
+    :root,
+    :root[data-theme='sistema'] {
+        color-scheme: light dark;
+    }
+
+    :root[data-theme='claro'] {
+        color-scheme: light;
+    }
+
+    :root[data-theme='escuro'] {
+        color-scheme: dark;
+    }
+}

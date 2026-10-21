@@ -4,51 +4,42 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OscRequest;
+use App\Http\Resources\V1\OscResource;
 use App\Models\Osc;
+use App\Services\GestaoOscs;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Cadastro e gestão de OSCs pelo administrador (RF02/RF09).
  */
 class OscController extends Controller
 {
-    public function store(OscRequest $request): RedirectResponse
+    public function store(OscRequest $request, GestaoOscs $gestao): RedirectResponse
     {
-        $senhaInicial = $request->validated('password') ?: Str::password(12, symbols: false);
-
-        $request->user('admin')->oscs()->create($request->dadosOsc() + [
-            'senha_hash' => Hash::make($senhaInicial),
-        ]);
+        [, $senhaGerada] = $gestao->cadastrar($request->user('admin'), $request->dadosOsc(), $request->validated('password'));
 
         return redirect()->route('admin.painel')
             ->with('status', 'OSC cadastrada com sucesso.')
-            ->with('senha_inicial', $senhaInicial);
+            ->with('senha_inicial', $senhaGerada);
     }
 
-    public function edit(Osc $osc): View
+    public function edit(Osc $osc): Response
     {
-        return view('admin.osc-form', ['osc' => $osc]);
+        return Inertia::render('Admin/OscForm', ['osc' => OscResource::make($osc)->resolve()]);
     }
 
-    public function update(OscRequest $request, Osc $osc): RedirectResponse
+    public function update(OscRequest $request, Osc $osc, GestaoOscs $gestao): RedirectResponse
     {
-        $dados = $request->dadosOsc();
-
-        if ($novaSenha = $request->validated('password')) {
-            $dados['senha_hash'] = Hash::make($novaSenha);
-        }
-
-        $osc->update($dados);
+        $gestao->atualizar($osc, $request->dadosOsc(), $request->validated('password'));
 
         return redirect()->route('admin.painel')->with('status', 'OSC atualizada com sucesso.');
     }
 
-    public function destroy(Osc $osc): RedirectResponse
+    public function destroy(Osc $osc, GestaoOscs $gestao): RedirectResponse
     {
-        $osc->delete();
+        $gestao->excluir($osc);
 
         return redirect()->route('admin.painel')->with('status', 'OSC excluída com suas demandas e manifestações.');
     }

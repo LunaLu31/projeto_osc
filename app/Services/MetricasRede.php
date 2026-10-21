@@ -5,12 +5,15 @@ namespace App\Services;
 use App\Models\Demanda;
 use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
+use App\Services\Concerns\ContaPorValor;
 
 /**
  * Indicadores globais da rede: página inicial, painel do administrador (RF09) e API.
  */
 class MetricasRede
 {
+    use ContaPorValor;
+
     /**
      * @return array{
      *     total_oscs: int,
@@ -23,20 +26,14 @@ class MetricasRede
      */
     public function resumo(): array
     {
-        $totais = Demanda::query()->toBase()
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $porStatus = collect(array_keys(Demanda::STATUS))
-            ->mapWithKeys(fn (string $status) => [$status => (int) ($totais[$status] ?? 0)])
-            ->all();
+        /** @var array<string, int> $porStatus */
+        $porStatus = $this->contarPor(Demanda::query()->toBase(), 'status', array_keys(Demanda::STATUS));
 
         return [
             'total_oscs' => Osc::count(),
             'demandas_por_status' => $porStatus,
             'demandas_ativas' => array_sum(array_intersect_key($porStatus, array_flip(Demanda::STATUS_PUBLICOS))),
-            'demandas_concluidas' => $porStatus[Demanda::STATUS_CONCLUIDA],
+            'demandas_concluidas' => (int) $porStatus[Demanda::STATUS_CONCLUIDA],
             'total_manifestacoes' => ManifestacaoInteresse::count(),
             'manifestacoes_no_mes' => ManifestacaoInteresse::where('data_manifestacao', '>=', now()->startOfMonth())->count(),
         ];

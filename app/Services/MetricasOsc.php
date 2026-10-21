@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Demanda;
 use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
+use App\Services\Concerns\ContaPorValor;
 
 /**
  * Indicadores do painel da OSC. Centraliza as consultas agregadas para que
@@ -12,6 +13,8 @@ use App\Models\Osc;
  */
 class MetricasOsc
 {
+    use ContaPorValor;
+
     public const DIAS_RECENTES = 30;
 
     public function __construct(private Osc $osc) {}
@@ -28,33 +31,20 @@ class MetricasOsc
      */
     public function resumo(): array
     {
+        /** @var array<string, int> $porStatus */
         $porStatus = $this->contarPor($this->osc->demandas()->toBase(), 'status', array_keys(Demanda::STATUS));
+        /** @var array<string, int> $porTipo */
         $porTipo = $this->contarPor($this->osc->manifestacoes()->toBase(), 'tipo_interesse', ManifestacaoInteresse::TIPOS);
 
         return [
             'demandas_por_status' => $porStatus,
             'demandas_ativas' => array_sum(array_intersect_key($porStatus, array_flip(Demanda::STATUS_PUBLICOS))),
-            'demandas_concluidas' => $porStatus[Demanda::STATUS_CONCLUIDA],
+            'demandas_concluidas' => (int) $porStatus[Demanda::STATUS_CONCLUIDA],
             'total_contatos' => array_sum($porTipo),
             'contatos_recentes' => $this->osc->manifestacoes()
                 ->where('data_manifestacao', '>=', now()->subDays(self::DIAS_RECENTES))
                 ->count(),
             'contatos_por_tipo' => $porTipo,
         ];
-    }
-
-    /**
-     * Contagem agrupada por coluna, com zero para os valores sem registros.
-     *
-     * @param  list<string>  $valores
-     * @return array<string, int>
-     */
-    private function contarPor($consulta, string $coluna, array $valores): array
-    {
-        $totais = $consulta->selectRaw("{$coluna} as chave, count(*) as total")
-            ->groupBy($coluna)
-            ->pluck('total', 'chave');
-
-        return collect($valores)->mapWithKeys(fn (string $valor) => [$valor => (int) ($totais[$valor] ?? 0)])->all();
     }
 }

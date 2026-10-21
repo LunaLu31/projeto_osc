@@ -7,16 +7,17 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Troca da senha inicial gerada pelo administrador (RF02).
  */
 class SenhaController extends Controller
 {
-    public function edit(): View
+    public function edit(): Response
     {
-        return view('osc.senha');
+        return Inertia::render('Osc/Senha');
     }
 
     public function update(Request $request): RedirectResponse
@@ -26,7 +27,10 @@ class SenhaController extends Controller
             'password' => ['required', 'confirmed', 'different:senha_atual', Password::defaults()],
         ]);
 
-        $request->user('osc')->update(['senha_hash' => Hash::make($dados['password'])]);
+        $osc = $request->user('osc');
+        $osc->update(['senha_hash' => Hash::make($dados['password'])]);
+        // Tokens da API emitidos com a senha antiga deixam de valer.
+        $osc->tokens()->delete();
         $request->session()->regenerate();
 
         return redirect()->route('osc.painel')->with('status', 'Senha alterada com sucesso.');

@@ -11,8 +11,6 @@ class Turnstile
 {
     public const ORIGEM = 'https://challenges.cloudflare.com';
 
-    public const SCRIPT = self::ORIGEM.'/turnstile/v0/api.js';
-
     public const VERIFICACAO = self::ORIGEM.'/turnstile/v0/siteverify';
 
     /** Nome do campo que o widget adiciona ao formulário. */

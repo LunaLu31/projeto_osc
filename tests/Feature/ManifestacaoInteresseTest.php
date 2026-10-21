@@ -8,6 +8,7 @@ use App\Support\Turnstile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ManifestacaoInteresseTest extends TestCase
@@ -32,8 +33,9 @@ class ManifestacaoInteresseTest extends TestCase
 
         $this->get("/demandas/{$demanda->id_demanda}/obrigado")
             ->assertOk()
-            ->assertViewIs('publico.obrigado')
-            ->assertSee('Obrigado por fazer parte dessa rede!');
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Publico/Obrigado')
+                ->where('organizacao', $demanda->osc->nome));
     }
 
     public function test_success_page_requires_a_recent_submission(): void
@@ -129,7 +131,8 @@ class ManifestacaoInteresseTest extends TestCase
         Http::fake();
         $demanda = Demanda::factory()->create();
 
-        $this->get("/demandas/{$demanda->id_demanda}")->assertDontSee('cf-turnstile');
+        $this->get("/demandas/{$demanda->id_demanda}")
+            ->assertInertia(fn (Assert $pagina) => $pagina->where('antiSpam.turnstileSiteKey', null));
         $this->post($this->url($demanda), $this->payload())->assertSessionHasNoErrors();
 
         Http::assertNothingSent();
@@ -142,8 +145,7 @@ class ManifestacaoInteresseTest extends TestCase
         $demanda = Demanda::factory()->create();
 
         $this->get("/demandas/{$demanda->id_demanda}")
-            ->assertSee('cf-turnstile')
-            ->assertSee(Turnstile::SCRIPT);
+            ->assertInertia(fn (Assert $pagina) => $pagina->where('antiSpam.turnstileSiteKey', 'chave-teste'));
 
         $this->post($this->url($demanda), $this->payload([Turnstile::CAMPO => 'token-valido']))
             ->assertRedirect("/demandas/{$demanda->id_demanda}/obrigado");

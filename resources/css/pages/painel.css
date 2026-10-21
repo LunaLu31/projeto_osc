@@ -1,12 +1,8 @@
+/*
+ * Painéis da OSC (RF08) e do administrador (RF09).
+ * Grades e espaçamentos responsivos estão nos utilitários dos componentes React.
+ */
 @layer components {
-    /* ---------- Painéis da OSC (RF08) e do administrador (RF09) ---------- */
-    .dashboard-title {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 22px;
-    }
-
     .dashboard-title h1 {
         margin: 7px 0;
         font-size: clamp(28px, 4vw, 40px);
@@ -18,13 +14,6 @@
         color: var(--color-muted);
     }
 
-    .metric-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin: 32px 0;
-    }
-
     .metric-grid article {
         display: flex;
         align-items: center;
@@ -32,7 +21,7 @@
         padding: 21px;
         border: 1px solid var(--color-line);
         border-radius: 16px;
-        background: white;
+        background: var(--color-surface);
     }
 
     .metric-grid article > div {
@@ -72,7 +61,7 @@
 
     .metric-icon--green {
         background: var(--color-primary-light);
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
 
     .metric-icon--orange {
@@ -81,10 +70,9 @@
     }
 
     .dashboard-list {
-        padding: 28px;
         border: 1px solid var(--color-line);
         border-radius: 18px;
-        background: white;
+        background: var(--color-surface);
     }
 
     .dashboard-list + .dashboard-list {
@@ -110,15 +98,9 @@
         font-size: 12px;
     }
 
-    .admin-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-        align-items: start;
-        gap: 20px;
-    }
-
     .admin-grid > * {
         min-width: 0;
+        margin-top: 0;
     }
 
     /* Alteração de status em linha (RF07) */
@@ -138,10 +120,6 @@
         font-size: 13px;
     }
 
-    .js .status-form .button {
-        display: none;
-    }
-
     /* ---------- Navegação da área da OSC ---------- */
     .painel-nav {
         display: flex;
@@ -151,7 +129,7 @@
         overflow-x: auto;
         border: 1px solid var(--color-line);
         border-radius: 14px;
-        background: white;
+        background: var(--color-surface);
         scrollbar-width: thin;
     }
 
@@ -171,13 +149,7 @@
     .painel-nav a:hover,
     .painel-nav a[aria-current='page'] {
         background: var(--color-primary-light);
-        color: var(--color-primary);
-    }
-
-    .painel-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 20px;
+        color: var(--color-accent);
     }
 
     /* Listas curtas da visão geral */
@@ -251,33 +223,21 @@
     }
 
     .filtro-abas a[aria-current='page'] {
-        border-color: var(--color-primary);
+        border-color: var(--color-accent);
         background: var(--color-primary-light);
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
 
     /* Filtros dos contatos */
-    .filtros-painel {
-        display: grid;
-        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
-        align-items: end;
-        gap: 12px;
-        margin-bottom: 22px;
-    }
-
     .filtros-painel .field {
         margin-top: 0;
-    }
-
-    .filtros-painel .button {
-        height: 47px;
     }
 
     .contato-meios a {
         display: flex;
         align-items: center;
         gap: 6px;
-        color: var(--color-primary);
+        color: var(--color-accent);
         overflow-wrap: anywhere;
     }
 
@@ -289,30 +249,5 @@
         max-width: 320px;
         color: var(--color-muted);
         white-space: pre-line;
-    }
-
-    @media (max-width: 1000px) {
-        .admin-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 780px) {
-        .metric-grid,
-        .painel-grid,
-        .filtros-painel {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 560px) {
-        .dashboard-title {
-            align-items: stretch;
-            flex-direction: column;
-        }
-
-        .dashboard-list {
-            padding: 20px 15px;
-        }
     }
 }

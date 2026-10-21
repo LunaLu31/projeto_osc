@@ -6,6 +6,7 @@ use App\Models\Demanda;
 use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class FeedPublicoTest extends TestCase
@@ -22,13 +23,18 @@ class FeedPublicoTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertViewIs('publico.feed')
-            ->assertViewHas('totalOscs', 1)
-            ->assertViewHas('demandasAtivas', 2)
-            ->assertViewHas('demandasConcluidas', 1)
-            ->assertViewHas('totalManifestacoes', 1)
-            ->assertViewHas('manifestacoesNoMes', 1)
-            ->assertViewHas('iniciaisOscsDestaque', fn ($iniciais) => $iniciais->all() === ['OE']);
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Publico/Feed')
+                ->where('metricas.total_oscs', 1)
+                ->where('metricas.demandas_ativas', 2)
+                ->where('metricas.demandas_concluidas', 1)
+                ->where('metricas.total_manifestacoes', 1)
+                ->where('metricas.manifestacoes_no_mes', 1)
+                ->where('iniciaisOscsDestaque', ['OE'])
+                // Props compartilhadas usadas pelos filtros e formulários.
+                ->where('referencias.statusPublicos', Demanda::STATUS_PUBLICOS)
+                ->where('auth.osc', null)
+                ->has('ziggy.routes'));
     }
 
     public function test_feed_hides_concluded_demands_and_lists_urgent_first(): void
@@ -37,10 +43,12 @@ class FeedPublicoTest extends TestCase
         Demanda::factory()->create(['titulo' => 'Demanda urgente', 'urgencia' => true]);
         Demanda::factory()->status(Demanda::STATUS_CONCLUIDA)->create(['titulo' => 'Demanda concluída']);
 
-        $this->get('/')
-            ->assertOk()
-            ->assertSeeInOrder(['Demanda urgente', 'Demanda comum'])
-            ->assertDontSee('Demanda concluída');
+        $this->get('/')->assertInertia(fn (Assert $pagina) => $pagina
+            ->has('demandas.data', 2)
+            ->where('demandas.data.0.titulo', 'Demanda urgente')
+            ->where('demandas.data.0.urgente', true)
+            ->where('demandas.data.1.titulo', 'Demanda comum')
+            ->where('demandas.meta.total', 2));
     }
 
     public function test_feed_filters_by_category_status_urgency_and_search(): void
@@ -50,10 +58,16 @@ class FeedPublicoTest extends TestCase
         Demanda::factory()->create(['titulo' => 'Kits de higiene', 'categoria' => 'Higiene', 'urgencia' => true]);
         Demanda::factory()->status(Demanda::STATUS_PARCIAL)->create(['titulo' => 'Agasalhos', 'categoria' => 'Vestuário']);
 
-        $this->get('/?categoria=Higiene')->assertSee('Kits de higiene')->assertDontSee('Cestas básicas');
-        $this->get('/?status=Parcial')->assertSee('Agasalhos')->assertDontSee('Cestas básicas');
-        $this->get('/?urgente=1')->assertSee('Kits de higiene')->assertDontSee('Agasalhos');
-        $this->get('/?busca=Casa+da')->assertSee('Cestas básicas')->assertDontSee('Kits de higiene');
+        $titulos = fn (string $url) => collect($this->get($url)->viewData('page')['props']['demandas']['data'])->pluck('titulo')->all();
+
+        $this->assertSame(['Kits de higiene'], $titulos('/?categoria=Higiene'));
+        $this->assertSame(['Agasalhos'], $titulos('/?status=Parcial'));
+        $this->assertSame(['Kits de higiene'], $titulos('/?urgente=1'));
+        $this->assertSame(['Cestas básicas'], $titulos('/?busca=Casa+da'));
+
+        $this->get('/?categoria=Higiene&urgente=1')->assertInertia(fn (Assert $pagina) => $pagina
+            ->where('filtros.categoria', 'Higiene')
+            ->where('filtros.urgente', true));
     }
 
     public function test_invalid_filters_are_ignored(): void
@@ -62,7 +76,7 @@ class FeedPublicoTest extends TestCase
 
         $this->get('/?categoria=Inexistente&status=Concluída')
             ->assertOk()
-            ->assertSee('Cestas básicas');
+            ->assertInertia(fn (Assert $pagina) => $pagina->has('demandas.data', 1));
     }
 
     public function test_public_pages_never_expose_supporter_contacts(): void
@@ -81,16 +95,20 @@ class FeedPublicoTest extends TestCase
         }
     }
 
-    public function test_demand_detail_page_shows_the_demand_and_the_interest_form(): void
+    public function test_demand_detail_page_shows_the_demand_and_anti_spam_data(): void
     {
         $demanda = Demanda::factory()->create(['titulo' => 'Material escolar']);
 
         $this->get("/demandas/{$demanda->id_demanda}")
             ->assertOk()
-            ->assertViewIs('publico.demanda')
-            ->assertSee('Material escolar')
-            ->assertSee($demanda->osc->nome)
-            ->assertSee('Apoiador/Doação');
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Publico/Demanda')
+                ->where('demanda.titulo', 'Material escolar')
+                ->where('demanda.osc.nome', $demanda->osc->nome)
+                ->missing('demanda.osc.email')
+                ->missing('demanda.total_contatos')
+                ->has('antiSpam.carregadoEm')
+                ->where('antiSpam.turnstileSiteKey', null));
     }
 
     public function test_concluded_or_missing_demands_are_not_publicly_available(): void
@@ -98,7 +116,9 @@ class FeedPublicoTest extends TestCase
         $concluida = Demanda::factory()->status(Demanda::STATUS_CONCLUIDA)->create();
 
         $this->get("/demandas/{$concluida->id_demanda}")->assertNotFound();
-        $this->get('/demandas/999999')->assertNotFound();
+        $this->get('/demandas/999999')
+            ->assertNotFound()
+            ->assertInertia(fn (Assert $pagina) => $pagina->component('Erro')->where('status', 404));
     }
 
     public function test_json_errors_use_friendly_messages(): void

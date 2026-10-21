@@ -9,6 +9,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * Demanda publicada por uma OSC. Não expõe contatos de apoiadores (RNF06);
  * apenas a contagem, quando solicitada por um painel privado.
+ * A OSC aninhada é resolvida aqui para ter o mesmo formato na API e nas props
+ * do Inertia (sem um "data" extra).
  *
  * @mixin Demanda
  */
@@ -30,7 +32,12 @@ class DemandaResource extends JsonResource
             'urgente' => $this->urgencia,
             'criada_em' => $this->data_criacao,
             'atualizada_em' => $this->data_atualizacao,
-            'osc' => OscPublicaResource::make($this->whenLoaded('osc')),
+            /**
+             * Organização que publicou a demanda.
+             *
+             * @var OscPublicaResource
+             */
+            'osc' => $this->whenLoaded('osc', fn () => OscPublicaResource::make($this->osc)->resolve($request)),
             'total_contatos' => $this->whenCounted('manifestacoes'),
         ];
     }

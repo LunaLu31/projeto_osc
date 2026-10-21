@@ -9,20 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * Criação do primeiro administrador. Disponível apenas enquanto não houver nenhum.
  */
 class ConfiguracaoController extends Controller
 {
-    public function create(): View|RedirectResponse
+    public function create(): Response|RedirectResponse
     {
         if (Adm::query()->exists()) {
             return redirect()->route('admin.login');
         }
 
-        return view('admin.configuracao');
+        return Inertia::render('Admin/Configuracao');
     }
 
     public function store(Request $request): RedirectResponse

@@ -58,7 +58,8 @@ class CabecalhosSeguranca
             'script-src' => ["'self'", $nonce, $turnstile, $viteHttp],
             // Em desenvolvimento o Vite injeta <style> via JS; com nonce o navegador ignoraria 'unsafe-inline'.
             'style-src' => $viteHttp ? ["'self'", "'unsafe-inline'", $viteHttp] : ["'self'", $nonce],
-            'img-src' => ["'self'", 'data:'],
+            // Em desenvolvimento, imagens importadas no React vêm do servidor do Vite.
+            'img-src' => ["'self'", 'data:', $viteHttp],
             'font-src' => ["'self'", $viteHttp],
             'connect-src' => ["'self'", $turnstile, $viteHttp, $viteWs],
             'frame-src' => [$turnstile ?? "'none'"],

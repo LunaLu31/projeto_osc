@@ -7,13 +7,12 @@ use App\Http\Requests\Api\OscParcialRequest;
 use App\Http\Requests\OscRequest;
 use App\Http\Resources\V1\OscResource;
 use App\Models\Osc;
+use App\Services\GestaoOscs;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * Cadastro e gestão das OSCs pelo administrador (RF02/RF09).
@@ -50,16 +49,12 @@ class OscController extends Controller
      * Se `password` não for enviado, uma senha inicial é gerada e devolvida **uma única vez**
      * em `senha_inicial`. Repasse-a por um canal seguro e oriente a troca no primeiro acesso.
      */
-    public function store(OscRequest $request): JsonResponse
+    public function store(OscRequest $request, GestaoOscs $gestao): JsonResponse
     {
-        $senhaGerada = $request->validated('password') ? null : Str::password(12, symbols: false);
-
-        $osc = $request->user()->oscs()->create($request->dadosOsc() + [
-            'senha_hash' => Hash::make($request->validated('password') ?: $senhaGerada),
-        ]);
+        [$osc, $senhaGerada] = $gestao->cadastrar($request->user(), $request->dadosOsc(), $request->validated('password'));
 
         return response()->json([
-            'data' => OscResource::make($osc->refresh()->loadCount('demandas')),
+            'data' => OscResource::make($osc->loadCount('demandas')),
             /** Presente apenas quando a senha foi gerada pelo sistema. */
             'senha_inicial' => $senhaGerada,
         ], 201);
@@ -79,9 +74,9 @@ class OscController extends Controller
      * Atualização completa. Envie `password` e `password_confirmation` apenas para redefinir a senha
      * (isso também revoga os tokens da OSC).
      */
-    public function update(OscRequest $request, Osc $osc): OscResource
+    public function update(OscRequest $request, Osc $osc, GestaoOscs $gestao): OscResource
     {
-        return $this->salvar($request, $osc);
+        return $this->salvar($request, $osc, $gestao);
     }
 
     /**
@@ -89,21 +84,14 @@ class OscController extends Controller
      *
      * Atualização parcial: envie apenas os campos que deseja alterar.
      */
-    public function atualizarParcial(OscParcialRequest $request, Osc $osc): OscResource
+    public function atualizarParcial(OscParcialRequest $request, Osc $osc, GestaoOscs $gestao): OscResource
     {
-        return $this->salvar($request, $osc);
+        return $this->salvar($request, $osc, $gestao);
     }
 
-    private function salvar(OscRequest $request, Osc $osc): OscResource
+    private function salvar(OscRequest $request, Osc $osc, GestaoOscs $gestao): OscResource
     {
-        $dados = $request->dadosOsc();
-
-        if ($novaSenha = $request->validated('password')) {
-            $dados['senha_hash'] = Hash::make($novaSenha);
-            $osc->tokens()->delete();
-        }
-
-        $osc->update($dados);
+        $gestao->atualizar($osc, $request->dadosOsc(), $request->validated('password'));
 
         return OscResource::make($osc->refresh()->loadCount('demandas'));
     }
@@ -113,10 +101,9 @@ class OscController extends Controller
      *
      * Exclui também as demandas da OSC e as manifestações recebidas.
      */
-    public function destroy(Osc $osc): Response
+    public function destroy(Osc $osc, GestaoOscs $gestao): Response
     {
-        $osc->tokens()->delete();
-        $osc->delete();
+        $gestao->excluir($osc);
 
         return response()->noContent();
     }

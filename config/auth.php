@@ -2,7 +2,6 @@
 
 use App\Models\Adm;
 use App\Models\Osc;
-use App\Models\User;
 
 return [
 
@@ -18,8 +17,8 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'guard' => env('AUTH_GUARD', 'osc'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'oscs'),
     ],
 
     /*
@@ -40,11 +39,6 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-
         // Área da OSC (RF01)
         'osc' => [
             'driver' => 'session',
@@ -76,11 +70,6 @@ return [
     */
 
     'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
-        ],
-
         'oscs' => [
             'driver' => 'eloquent',
             'model' => Osc::class,
@@ -91,10 +80,6 @@ return [
             'model' => Adm::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*
@@ -117,8 +102,9 @@ return [
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
+        // Base para o "esqueci minha senha" da OSC (versão B).
+        'oscs' => [
+            'provider' => 'oscs',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,

@@ -1,59 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Redcam · UOSCC
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Plataforma que conecta organizações da sociedade civil (OSCs) de Camaçari a pessoas que querem ajudar.
+As OSCs publicam necessidades reais (demandas); apoiadores encontram, filtram e manifestam interesse
+sem precisar criar conta; a UOSCC administra a rede.
 
-## About Laravel
+> Projeto de TCC — MVP (Versão A). Grupo: Gabriel Rodrigues, Engenilson, Mariana, Luna e Lauane.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Camada | Tecnologias |
+|---|---|
+| Back-end | PHP 8.2+, Laravel 12, Eloquent, Sanctum (API), Scramble (OpenAPI) |
+| Front-end | React 19 + TypeScript via Inertia.js (SSR), React Compiler, Ziggy (rotas tipadas), Tailwind CSS 4 + design system próprio, tema claro/escuro |
+| Banco | MySQL 8 (`database/schema/uoscc_redecam.sql` + migrations equivalentes) |
+| Build e qualidade | Vite 7, ESLint, Prettier, Vitest + Testing Library + axe-core, PHPUnit, Laravel Pint |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Arquitetura
 
-## Learning Laravel
+```
+app/
+├── Http/Controllers/
+│   ├── Publico/  Osc/  Admin/      site (retornam páginas React via Inertia::render)
+│   └── Api/V1/                     API REST JSON (/api/v1)
+├── Http/Requests/                  validação compartilhada entre site e API
+├── Http/Resources/V1/              formato dos dados (API e props das páginas) – controle LGPD
+├── Http/Middleware/                Inertia, cabeçalhos de segurança/CSP, JSON na API
+├── Models/  Policies/  Rules/
+└── Services/                       regras de negócio (métricas, gestão de OSCs)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+resources/js/
+├── pages/        uma página React por tela (Publico/, Osc/, Admin/, Erro.tsx)
+├── layouts/      LayoutSite, LayoutOsc, LayoutAdmin, LayoutAutenticacao
+├── components/   componentes reutilizáveis do design system
+├── hooks/        hooks (ex.: useRecarregandoPagina para skeletons)
+├── lib/          utilitários (formatação, classes, ações, props tipadas)
+├── test/         configuração dos testes de componentes
+└── types/        api.d.ts (gerado do OpenAPI), ziggy.d.ts (gerado) e tipos do domínio
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+resources/css/    tokens (app.css), temas (theme.css) e componentes do design system
+```
 
-## Laravel Sponsors
+### Front-end: práticas adotadas
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **Tipos gerados**: `types/api.d.ts` vem do OpenAPI (`npm run tipos:api`); os tipos do domínio derivam
+  dele. Uma mudança num Resource do Laravel quebra a checagem de tipos onde for preciso ajustar.
+- **Estados de requisição**: o Inertia é o cliente HTTP (CSRF e sessão do Laravel). Erros de validação
+  aparecem em cada campo; recargas da página mostram *skeletons*; falhas de rede ou respostas
+  inesperadas exibem um aviso global (`AvisoConexao`), sem expor erros técnicos.
+- **Responsivo e mobile first**: a estrutura das páginas usa utilitários do Tailwind (`sm:`, `md:`…);
+  a aparência dos componentes fica em classes do design system (`@layer components`).
+- **Tema claro/escuro**: tokens com `light-dark()`; a preferência fica no cookie `tema` e é aplicada
+  já no HTML do servidor, sem piscar. Botão de alternância em todos os layouts.
+- **Acessibilidade**: WCAG 2.1 AA (contraste ≥ 4,5:1 nos dois temas), diálogo de confirmação nativo
+  (`<dialog>`), foco gerenciado e checagem automática com axe-core nos testes.
+- **Desempenho**: React Compiler (memorização automática), páginas em chunks separados e listas
+  paginadas no servidor.
 
-### Premium Partners
+- **Site**: rotas e autorização ficam no Laravel; cada controller entrega uma página React com props
+  tipadas. Navegação e formulários sem recarregar a página, com sessão e CSRF do Laravel.
+- **API REST** (`/api/v1`): tokens Bearer (Sanctum) com escopo por perfil (`osc`/`admin`).
+  Documentação Swagger em **`/docs/api`** (OpenAPI 3.1 gerado do código; cópia em `docs/openapi.json`).
+- **Perfis**: apoiador (sem login), OSC (guard `osc`) e administrador (guard `admin`).
+- **SEO**: cada página define título, descrição e tags Open Graph (`<Head>` do Inertia).
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Como rodar
 
-## Contributing
+```bash
+cp .env.example .env            # ajuste DB_* e APP_URL
+composer install && npm install
+php artisan key:generate
+php artisan migrate --seed      # cria todas as tabelas (mesmo esquema do script físico) e o admin padrão
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+composer dev                    # servidor Laravel + fila + logs + Vite
+```
 
-## Code of Conduct
+O script `database/schema/uoscc_redecam.sql` documenta o modelo físico do banco (entregável do TCC);
+as migrations geram exatamente as mesmas tabelas, além das tabelas internas do Laravel
+(sessões, cache e filas).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Acesso de desenvolvimento: `admin@uoscc.org` / `admin123` em `/admin` (troque em produção).
 
-## Security Vulnerabilities
+### Renderização no servidor (SSR)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Em produção as páginas são renderizadas no servidor (HTML pronto para buscadores e para as prévias
+de links compartilhados), e o React "hidrata" esse HTML no navegador:
 
-## License
+```bash
+npm run build:ssr               # build do cliente + bundle de SSR (bootstrap/ssr)
+php artisan inertia:start-ssr   # servidor Node de SSR (porta 13714); use um supervisor em produção
+# .env: INERTIA_SSR_ENABLED=true
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Sem o servidor de SSR o site continua funcionando, renderizado no navegador. Para testar localmente
+com SSR: `composer dev:ssr`.
+Dados fictícios: `php artisan db:seed --class=DemonstracaoSeeder` (OSCs com senha `senha-segura`).
+
+## Qualidade
+
+```bash
+php artisan test        # testes do back-end (site com assertInertia + API), banco MySQL uoscc_redecam_test
+npm test                # testes de componentes React (Vitest + Testing Library + axe-core)
+npm run verificar       # TypeScript + ESLint + Prettier + tipos da API atualizados
+vendor/bin/pint         # padrão de código PHP (PSR-12)
+npm run rotas:tipos     # regenera os tipos das rotas após alterar routes/web.php
+php artisan scramble:export && npm run tipos:api   # atualiza o OpenAPI e os tipos do front após alterar a API
+```
+
+## Segurança
+
+CSP com nonce e sem estilos/scripts inline, HSTS, `X-Frame-Options`, senhas com bcrypt e política
+mínima, limite de tentativas de login (e-mail + IP), anti-spam no formulário público (honeypot,
+armadilha de tempo e Cloudflare Turnstile opcional), tokens da API com expiração e contatos de
+apoiadores visíveis apenas para a OSC responsável (LGPD).
+
+Antes do deploy: `php artisan seguranca:verificar`.

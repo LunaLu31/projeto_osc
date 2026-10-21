@@ -1,3 +1,8 @@
+/*
+ * Estrutura das áreas (cabeçalhos, rodapé, telas de acesso).
+ * Disposição responsiva (colunas, espaçamentos por tamanho de tela) fica nos
+ * utilitários do Tailwind dos layouts React; aqui ficam aparência e detalhes internos.
+ */
 @layer components {
     /* ---------- Acessibilidade ---------- */
     .skip-link {
@@ -8,7 +13,7 @@
         padding: 10px 14px;
         border-radius: 10px;
         background: var(--color-primary-dark);
-        color: white;
+        color: var(--color-on-primary);
         font-weight: 700;
     }
 
@@ -30,9 +35,16 @@
         flex: 0 0 auto;
         place-items: center;
         border-radius: 14px 14px 14px 5px;
+        overflow: hidden;
         background: var(--color-primary);
-        color: white;
-        box-shadow: 0 8px 20px rgb(52 125 184 / 0.2);
+        color: var(--color-on-primary);
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 20%, transparent);
+    }
+
+    /* Logo do Redcam no formato do ícone (resources/images/redcam-marca.png). */
+    .logo__mark img {
+        width: 100%;
+        height: 100%;
     }
 
     .logo__copy {
@@ -56,17 +68,8 @@
 
     /* ---------- Cabeçalho público ---------- */
     .site-header {
-        position: sticky;
-        top: 0;
-        z-index: 40;
-        display: flex;
-        min-height: 82px;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 0 max(5vw, 24px);
-        border-bottom: 1px solid rgb(220 232 242 / 0.88);
-        background: rgb(255 255 255 / 0.9);
+        border-bottom: 1px solid var(--color-header-line);
+        background: var(--color-header);
         backdrop-filter: blur(18px);
     }
 
@@ -81,16 +84,7 @@
         place-items: center;
         border: 1px solid var(--color-line);
         border-radius: 12px;
-        background: white;
-    }
-
-    .menu-button__close,
-    .menu-button[aria-expanded='true'] .menu-button__open {
-        display: none;
-    }
-
-    .menu-button[aria-expanded='true'] .menu-button__close {
-        display: block;
+        background: var(--color-surface);
     }
 
     .nav {
@@ -105,16 +99,15 @@
         padding: 8px;
         border: 1px solid var(--color-line);
         border-radius: 14px;
-        background: white;
-        box-shadow: 0 16px 40px rgb(28 66 103 / 0.14);
+        background: var(--color-surface);
+        box-shadow: 0 16px 40px color-mix(in srgb, var(--color-sombra) 14%, transparent);
         opacity: 0;
         visibility: hidden;
         transform: translateY(-6px);
         transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
     }
 
-    /* Sem JavaScript o menu abre pelo foco; com JS, pelo botão (resources/js/menu.js). */
-    html:not(.js) .navigation-menu:focus-within .nav,
+    /* Aberto pelo botão do menu (resources/js/layouts/LayoutSite.tsx). */
     .nav--open {
         opacity: 1;
         visibility: visible;
@@ -135,17 +128,13 @@
     .nav a:hover,
     .nav a[aria-current='page'] {
         background: var(--color-primary-light);
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
 
     /* ---------- Rodapé ---------- */
     .site-footer {
-        display: grid;
-        grid-template-columns: 1.5fr 0.8fr 1fr;
-        gap: 60px;
-        padding: 70px max(7vw, 24px) 50px;
         border-top: 1px solid var(--color-line);
-        background: white;
+        background: var(--color-surface);
     }
 
     .site-footer > div {
@@ -174,7 +163,7 @@
     }
 
     .site-footer a:not(.logo):hover {
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
 
     .footer-signature {
@@ -184,33 +173,24 @@
     }
 
     .footer-signature strong {
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
 
     .footer-signature span {
-        color: var(--color-muted);
+        color: var(--color-accent-strong);
         font-size: 12px;
         line-height: 1.5;
     }
 
     .footer-bottom {
-        display: flex;
-        justify-content: space-between;
-        gap: 6px;
         padding: 18px max(7vw, 24px);
         border-top: 1px solid var(--color-line);
-        background: white;
+        background: var(--color-surface);
         color: var(--color-muted);
         font-size: 11px;
     }
 
     /* ---------- Páginas internas ---------- */
-    .page {
-        width: min(1180px, 100% - 48px);
-        margin: 0 auto;
-        padding: 48px 0 96px;
-    }
-
     .page--narrow {
         max-width: 760px;
         margin-inline: auto;
@@ -227,7 +207,7 @@
     }
 
     .back-link:hover {
-        color: var(--color-primary);
+        color: var(--color-accent);
     }
 
     /* ---------- Telas de acesso (login / configuração) ---------- */
@@ -236,21 +216,24 @@
         min-height: 100vh;
         place-items: center;
         padding: 32px 20px;
-        background: radial-gradient(circle at 12% 18%, rgb(167 218 250 / 0.26), transparent 27%),
-            linear-gradient(118deg, #eaf6ff 0%, #f8fbff 54%, #e3f1fc 100%);
+        background:
+            radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--color-hero-brilho) 26%, transparent), transparent 27%),
+            linear-gradient(118deg, var(--color-hero-1) 0%, var(--color-hero-2) 54%, var(--color-hero-3) 100%);
     }
 
     .auth-card {
         width: 100%;
         max-width: 460px;
-        padding: 42px;
         border: 1px solid var(--color-line);
         border-radius: 22px;
-        background: white;
+        background: var(--color-surface);
         box-shadow: var(--shadow-card);
     }
 
+    /* Logo em linha própria, com o rótulo da tela (ex.: "Área restrita") abaixo. */
     .auth-card .logo {
+        display: flex;
+        width: fit-content;
         margin-bottom: 32px;
     }
 
@@ -275,17 +258,8 @@
 
     /* ---------- Painéis (OSC e administrador) ---------- */
     .dashboard-header {
-        position: sticky;
-        top: 0;
-        z-index: 40;
-        display: flex;
-        min-height: 78px;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 0 max(5vw, 24px);
         border-bottom: 1px solid var(--color-line);
-        background: rgb(255 255 255 / 0.95);
+        background: var(--color-header-solid);
         backdrop-filter: blur(18px);
     }
 
@@ -296,53 +270,11 @@
     }
 
     .dashboard-user__info {
-        display: flex;
         flex-direction: column;
         font-size: 12px;
     }
 
     .dashboard-user__info small {
         color: var(--color-muted);
-    }
-
-    .dashboard-main {
-        width: min(1180px, 100% - 48px);
-        margin: 0 auto;
-        padding: 56px 0 100px;
-    }
-
-    @media (max-width: 780px) {
-        .site-header {
-            min-height: 70px;
-        }
-
-        .site-footer {
-            grid-template-columns: 1fr 1fr;
-        }
-    }
-
-    @media (max-width: 560px) {
-        .site-footer {
-            grid-template-columns: 1fr;
-            gap: 36px;
-        }
-
-        .footer-bottom {
-            flex-direction: column;
-        }
-
-        .page,
-        .dashboard-main {
-            width: calc(100% - 32px);
-        }
-
-        .auth-card {
-            padding: 30px 22px;
-        }
-
-        .dashboard-header .logo__copy,
-        .dashboard-user__info {
-            display: none;
-        }
     }
 }

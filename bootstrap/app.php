@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\CabecalhosSeguranca;
 use App\Http\Middleware\ForcarRespostaJson;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Support\Tema;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -9,8 +11,10 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 $respondeEmJson = fn (Request $request) => $request->is('api/*') || $request->expectsJson();
@@ -19,12 +23,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // CSP, anti-clickjacking, nosniff e HSTS em todas as respostas.
         $middleware->append(CabecalhosSeguranca::class);
+
+        // Preferência de tema: escrita pelo JavaScript e sem dado sensível (não criptografada).
+        $middleware->encryptCookies(except: [Tema::COOKIE]);
+
+        // Site: páginas React via Inertia (props compartilhadas em HandleInertiaRequests).
+        $middleware->web(append: [HandleInertiaRequests::class]);
 
         // API: sempre JSON e limite de requisições (RateLimiter "api" no AppServiceProvider).
         $middleware->api(prepend: [ForcarRespostaJson::class]);
@@ -85,5 +94,29 @@ return Application::configure(basePath: dirname(__DIR__))
             $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
 
             return response()->json(['message' => $mensagem], $status, $headers);
+        });
+
+        // Site (Inertia): erros viram uma página React amigável, sem detalhes técnicos (RNF12).
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) use ($respondeEmJson) {
+            $status = $response->getStatusCode();
+
+            if ($respondeEmJson($request)) {
+                return $response;
+            }
+
+            if ($status === 419) {
+                return back()->with('erro', 'Sua sessão expirou. Tente novamente.');
+            }
+
+            // Em desenvolvimento, erros 500 mantêm a página de depuração do Laravel.
+            $mostrarDepuracao = $status >= 500 && config('app.debug');
+
+            if (in_array($status, [403, 404, 429, 500, 503], true) && ! $mostrarDepuracao) {
+                return Inertia::render('Erro', ['status' => $status])
+                    ->toResponse($request)
+                    ->setStatusCode($status);
+            }
+
+            return $response;
         });
     })->create();

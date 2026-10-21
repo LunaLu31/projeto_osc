@@ -92,6 +92,8 @@ class SegurancaTest extends TestCase
         $this->assertStringContainsString('script-src \'self\'', $csp);
         $this->assertStringContainsString('http://localhost:5173', $csp);
         $this->assertStringContainsString('connect-src \'self\' http://localhost:5173 ws://localhost:5173', $csp);
+        // Imagens importadas nos componentes (ex.: logo do cabeçalho) também vêm do Vite.
+        $this->assertStringContainsString('img-src \'self\' data: http://localhost:5173', $csp);
     }
 
     public function test_ipv6_dev_server_falls_back_to_scheme_sources(): void

@@ -1,0 +1,5 @@
+# Arquivos gerados
+resources/js/types/ziggy.d.ts
+resources/js/types/api.d.ts
+public/build
+bootstrap/ssr

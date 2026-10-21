@@ -8,6 +8,7 @@ use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AreaOscTest extends TestCase
@@ -16,7 +17,7 @@ class AreaOscTest extends TestCase
 
     public function test_login_page_is_available_to_guests(): void
     {
-        $this->get('/osc/login')->assertOk()->assertViewIs('osc.login');
+        $this->get('/osc/login')->assertOk()->assertInertia(fn (Assert $pagina) => $pagina->component('Osc/Login'));
     }
 
     public function test_an_osc_can_log_in_with_its_registered_credentials(): void
@@ -92,15 +93,18 @@ class AreaOscTest extends TestCase
         $this->actingAs($osc, 'osc')
             ->get('/osc/painel')
             ->assertOk()
-            ->assertViewIs('osc.painel')
-            ->assertViewHas('metricas', fn (array $m) => $m['demandas_ativas'] === 1
-                && $m['demandas_concluidas'] === 1
-                && $m['total_contatos'] === 1
-                && $m['contatos_recentes'] === 1
-                && $m['contatos_por_tipo']['Voluntário'] === 1)
-            ->assertSee('Ana Souza')
-            ->assertSee('Doação de livros')
-            ->assertDontSee('Demanda de outra OSC');
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Osc/Painel')
+                ->where('auth.osc.id', $osc->id_osc)
+                ->where('metricas.demandas_ativas', 1)
+                ->where('metricas.demandas_concluidas', 1)
+                ->where('metricas.total_contatos', 1)
+                ->where('metricas.contatos_recentes', 1)
+                ->where('metricas.contatos_por_tipo.Voluntário', 1)
+                ->has('contatosRecentes', 1)
+                ->where('contatosRecentes.0.nome', 'Ana Souza')
+                ->has('prazosProximos', 1)
+                ->where('prazosProximos.0.titulo', 'Doação de livros'));
     }
 
     public function test_demands_page_lists_only_its_demands_and_filters_by_status(): void
@@ -111,15 +115,11 @@ class AreaOscTest extends TestCase
         Demanda::factory()->create(['titulo' => 'Demanda de outra OSC']);
 
         $this->actingAs($osc, 'osc');
-        $this->get('/osc/demandas')
-            ->assertOk()
-            ->assertSee('Demanda aberta')
-            ->assertSee('Demanda finalizada')
-            ->assertDontSee('Demanda de outra OSC');
+        $todas = $this->get('/osc/demandas')->assertOk()->assertInertia(fn (Assert $pagina) => $pagina->component('Osc/Demandas'));
+        $this->assertEqualsCanonicalizing(['Demanda aberta', 'Demanda finalizada'], $this->coluna($todas, 'demandas', 'titulo'));
 
-        $this->get('/osc/demandas?status='.urlencode(Demanda::STATUS_CONCLUIDA))
-            ->assertSee('Demanda finalizada')
-            ->assertDontSee('Demanda aberta');
+        $concluidas = $this->get('/osc/demandas?status='.urlencode(Demanda::STATUS_CONCLUIDA));
+        $this->assertSame(['Demanda finalizada'], $this->coluna($concluidas, 'demandas', 'titulo'));
     }
 
     public function test_contacts_page_shows_only_its_own_supporters(): void
@@ -136,12 +136,13 @@ class AreaOscTest extends TestCase
         $this->actingAs($osc, 'osc')
             ->get('/osc/contatos')
             ->assertOk()
-            ->assertViewIs('osc.contatos')
-            ->assertSee('Ana Souza')
-            ->assertSee('ana@example.com')
-            ->assertSee('Voluntário')
-            ->assertSee('Doação de livros')
-            ->assertDontSee('Contato de outra OSC')
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Osc/Contatos')
+                ->has('contatos.data', 1)
+                ->where('contatos.data.0.nome', 'Ana Souza')
+                ->where('contatos.data.0.email', 'ana@example.com')
+                ->where('contatos.data.0.tipo_interesse', 'Voluntário')
+                ->where('contatos.data.0.demanda.titulo', 'Doação de livros'))
             ->assertDontSee('outra@example.com');
     }
 
@@ -155,13 +156,13 @@ class AreaOscTest extends TestCase
         ManifestacaoInteresse::factory()->for($outraDemanda)->create(['nome_apoiador' => 'Contato alheio']);
 
         $this->actingAs($osc, 'osc');
-        $this->get("/osc/contatos?demanda={$livros->id_demanda}")->assertSee('Ana Livros')->assertDontSee('Beto Roupas');
-        $this->get('/osc/contatos?tipo=Aluno')->assertSee('Beto Roupas')->assertDontSee('Ana Livros');
+        $this->assertSame(['Ana Livros'], $this->coluna($this->get("/osc/contatos?demanda={$livros->id_demanda}"), 'contatos.data', 'nome'));
+        $this->assertSame(['Beto Roupas'], $this->coluna($this->get('/osc/contatos?tipo=Aluno'), 'contatos.data', 'nome'));
 
         // Filtrar por demanda de outra OSC é ignorado e nunca expõe os contatos dela.
-        $this->get("/osc/contatos?demanda={$outraDemanda->id_demanda}")
-            ->assertSee('Ana Livros')
-            ->assertDontSee('Contato alheio');
+        $alheia = $this->get("/osc/contatos?demanda={$outraDemanda->id_demanda}");
+        $this->assertEqualsCanonicalizing(['Ana Livros', 'Beto Roupas'], $this->coluna($alheia, 'contatos.data', 'nome'));
+        $alheia->assertInertia(fn (Assert $pagina) => $pagina->where('filtros.demanda', null));
     }
 
     public function test_an_osc_can_create_a_demand(): void
@@ -211,7 +212,10 @@ class AreaOscTest extends TestCase
         $this->actingAs($osc, 'osc')
             ->get("/osc/demandas/{$demanda->id_demanda}/editar")
             ->assertOk()
-            ->assertSee($demanda->titulo);
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Osc/DemandaForm')
+                ->where('demanda.id', $demanda->id_demanda)
+                ->where('demanda.titulo', $demanda->titulo));
 
         $this->put("/osc/demandas/{$demanda->id_demanda}", $this->demandPayload(['titulo' => 'Título editado']))
             ->assertRedirect('/osc/demandas');

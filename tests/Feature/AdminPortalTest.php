@@ -7,6 +7,7 @@ use App\Models\Demanda;
 use App\Models\Osc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AdminPortalTest extends TestCase
@@ -17,7 +18,7 @@ class AdminPortalTest extends TestCase
     {
         $this->get('/admin')->assertRedirect('/admin/login');
         $this->get('/admin/login')->assertRedirect('/admin/configuracao');
-        $this->get('/admin/configuracao')->assertOk()->assertViewIs('admin.configuracao');
+        $this->get('/admin/configuracao')->assertOk()->assertInertia(fn (Assert $pagina) => $pagina->component('Admin/Configuracao'));
     }
 
     public function test_the_first_admin_can_create_an_account_and_enter_the_portal(): void
@@ -52,7 +53,7 @@ class AdminPortalTest extends TestCase
     {
         $admin = Adm::factory()->create();
 
-        $this->get('/admin/login')->assertOk()->assertViewIs('admin.login');
+        $this->get('/admin/login')->assertOk()->assertInertia(fn (Assert $pagina) => $pagina->component('Admin/Login'));
         $this->post('/admin/login', ['email' => $admin->email, 'password' => 'senha-segura'])
             ->assertRedirect('/admin');
 
@@ -91,13 +92,36 @@ class AdminPortalTest extends TestCase
         $this->actingAs($admin, 'admin')
             ->get('/admin')
             ->assertOk()
-            ->assertViewIs('admin.painel')
-            ->assertViewHas('oscs', fn ($oscs) => $oscs->count() === 2)
-            ->assertViewHas('demandas', fn ($demandas) => $demandas->count() === 2)
-            ->assertSee('OSC cadastrada por mim')
-            ->assertSee('OSC de outro admin')
-            ->assertSee('Demanda da primeira OSC')
-            ->assertSee('Demanda da segunda OSC');
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Admin/Painel')
+                ->where('auth.admin.id', $admin->id_admin)
+                ->where('metricas.total_oscs', 2)
+                ->has('oscs.data', 2)
+                ->where('oscs.meta.total', 2)
+                ->has('demandas.data', 2)
+                ->where('demandas.meta.total', 2));
+
+        $resposta = $this->get('/admin');
+        $this->assertEqualsCanonicalizing(['OSC cadastrada por mim', 'OSC de outro admin'], $this->coluna($resposta, 'oscs.data', 'nome'));
+        $this->assertEqualsCanonicalizing(['Demanda da primeira OSC', 'Demanda da segunda OSC'], $this->coluna($resposta, 'demandas.data', 'titulo'));
+    }
+
+    public function test_dashboard_lists_are_paginated_independently(): void
+    {
+        $admin = Adm::factory()->create();
+        Osc::factory(12)->for($admin, 'adm')->create();
+        Demanda::factory(17)->create();
+
+        $this->actingAs($admin, 'admin')
+            ->get('/admin?pagina_oscs=2&pagina_demandas=2')
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->where('metricas.total_oscs', 29)
+                ->has('oscs.data', 10)
+                ->where('oscs.meta.current_page', 2)
+                ->where('oscs.meta.total', 29)
+                ->has('demandas.data', 2)
+                ->where('demandas.meta.current_page', 2)
+                ->where('demandas.meta.total', 17));
     }
 
     public function test_admin_can_register_an_osc_with_a_chosen_password(): void
@@ -152,7 +176,9 @@ class AdminPortalTest extends TestCase
         $this->actingAs($admin, 'admin')
             ->get("/admin/oscs/{$osc->id_osc}/editar")
             ->assertOk()
-            ->assertSee('OSC editável');
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Admin/OscForm')
+                ->where('osc.nome', 'OSC editável'));
 
         $this->put("/admin/oscs/{$osc->id_osc}", $this->oscPayload(['nome' => 'OSC atualizada', 'email' => $osc->email]))
             ->assertRedirect('/admin');
