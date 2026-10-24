@@ -98,11 +98,6 @@
         font-size: 12px;
     }
 
-    .admin-grid > * {
-        min-width: 0;
-        margin-top: 0;
-    }
-
     /* Alteração de status em linha (RF07) */
     .status-form {
         display: flex;
@@ -120,29 +115,24 @@
         font-size: 13px;
     }
 
-    /* ---------- Navegação da área da OSC ---------- */
+    /* ---------- Abas do menu lateral dos painéis (OSC e administrador) ---------- */
     .painel-nav {
         display: flex;
-        gap: 6px;
-        margin-bottom: 34px;
-        padding: 6px;
-        overflow-x: auto;
-        border: 1px solid var(--color-line);
-        border-radius: 14px;
-        background: var(--color-surface);
-        scrollbar-width: thin;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .painel-nav a {
-        display: inline-flex;
-        flex: 0 0 auto;
+        display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
+        justify-content: center;
+        gap: 12px;
+        padding: 12px 0;
         border-radius: 10px;
         color: var(--color-muted);
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 700;
+        white-space: nowrap;
         transition: color 160ms ease, background 160ms ease;
     }
 
@@ -150,6 +140,30 @@
     .painel-nav a[aria-current='page'] {
         background: var(--color-primary-light);
         color: var(--color-accent);
+    }
+
+    /* Só ícones até o lg: o rótulo some da tela, mas continua sendo o nome acessível do link. */
+    .painel-nav__rotulo {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    @media (width >= 62.5625rem) {
+        .painel-nav a {
+            justify-content: flex-start;
+            padding: 12px 14px;
+        }
+
+        .painel-nav__rotulo {
+            position: static;
+            width: auto;
+            height: auto;
+            overflow: visible;
+            clip-path: none;
+        }
     }
 
     /* Listas curtas da visão geral */

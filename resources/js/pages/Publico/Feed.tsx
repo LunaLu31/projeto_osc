@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { route } from 'ziggy-js';
 import { EsqueletoCartoes } from '@/components/Esqueleto';
 import Icone from '@/components/Icone';
@@ -25,7 +25,10 @@ interface FeedProps {
     iniciaisOscsDestaque: string[];
 }
 
-/** Página inicial: apresentação, métricas e listagem pública de demandas (RF04). */
+/**
+ * Página inicial: apresentação, métricas e listagem pública de demandas (RF04).
+ * "Como funciona" e "Sobre a rede" têm páginas próprias no menu (Publico/ComoFunciona e Publico/Sobre).
+ */
 export default function Feed({ demandas, filtros, metricas, iniciaisOscsDestaque }: FeedProps) {
     const carregando = useRecarregandoPagina();
 
@@ -104,21 +107,6 @@ export default function Feed({ demandas, filtros, metricas, iniciaisOscsDestaque
                     </div>
                 )}
             </section>
-
-            <ComoFunciona />
-            <Sobre />
-
-            <section className="cta-section px-[22px] py-14 sm:px-6 sm:py-[76px]">
-                <span className="eyebrow">Faça parte desta rede</span>
-                <h2>Existe uma causa esperando por você.</h2>
-                <p>
-                    Doe materiais, compartilhe conhecimento ou ofereça seu tempo. Toda contribuição começa com uma
-                    conexão.
-                </p>
-                <a href="#demandas" className="button button--light">
-                    Ver demandas abertas <Icone nome="arrow" />
-                </a>
-            </section>
         </LayoutSite>
     );
 }
@@ -140,13 +128,13 @@ function Hero({ totalOscs, iniciais }: { totalOscs: number; iniciais: string[] }
                     Descubra necessidades reais de organizações sociais de Camaçari e contribua com doações, tempo ou
                     conhecimento. Sem burocracia.
                 </p>
-                <div className="hero__actions flex flex-col gap-3 sm:flex-row">
+                <div className="hero__actions flex flex-col gap-3 sm:flex-row sm:justify-center">
                     <a href="#demandas" className="button button--primary">
                         Encontrar uma causa <Icone nome="arrow" />
                     </a>
-                    <a href="#como-funciona" className="button button--light">
+                    <Link href={route('como-funciona')} className="button button--light">
                         Como funciona
-                    </a>
+                    </Link>
                 </div>
                 {totalOscs > 0 && (
                     <div className="hero__trust">
@@ -166,15 +154,20 @@ function Hero({ totalOscs, iniciais }: { totalOscs: number; iniciais: string[] }
     );
 }
 
+function mesmosFiltros(a: Filtros, b: Filtros): boolean {
+    return a.busca === b.busca && a.categoria === b.categoria && a.status === b.status && a.urgente === b.urgente;
+}
+
 /** Filtros aplicados sem recarregar a página; o estado fica na URL (compartilhável). */
 function FiltrosFeed({ iniciais }: { iniciais: Filtros }) {
     const { referencias } = usePropsPagina();
     const [filtros, setFiltros] = useState(iniciais);
-    const primeiraRenderizacao = useRef(true);
 
     useEffect(() => {
-        if (primeiraRenderizacao.current) {
-            primeiraRenderizacao.current = false;
+        // Só busca quando o formulário difere do que a página atual já mostra. Assim, abrir outra
+        // página da paginação (ou o efeito rodar duas vezes no StrictMode) não refaz a busca,
+        // que voltaria para a página 1.
+        if (mesmosFiltros(filtros, iniciais)) {
             return;
         }
 
@@ -193,7 +186,7 @@ function FiltrosFeed({ iniciais }: { iniciais: Filtros }) {
         }, 400);
 
         return () => clearTimeout(espera);
-    }, [filtros]);
+    }, [filtros, iniciais]);
 
     const alterar = <K extends keyof Filtros>(campo: K, valor: Filtros[K]) =>
         setFiltros((atual) => ({ ...atual, [campo]: valor }));
@@ -295,82 +288,5 @@ function CartaoDemanda({ demanda }: { demanda: Demanda }) {
                 </Link>
             </div>
         </article>
-    );
-}
-
-function ComoFunciona() {
-    const passos = [
-        {
-            icone: 'search',
-            titulo: 'Encontre uma causa',
-            texto: 'Use os filtros para descobrir necessidades que combinam com a forma como você quer ajudar.',
-        },
-        {
-            icone: 'heart',
-            titulo: 'Manifeste seu interesse',
-            texto: 'Preencha um formulário rápido. Não precisa criar uma conta nem expor seus dados publicamente.',
-        },
-        {
-            icone: 'people',
-            titulo: 'Conecte-se com a OSC',
-            texto: 'A organização recebe seu contato e combina diretamente os próximos passos com você.',
-        },
-    ] as const;
-
-    return (
-        <section className="section section--tinted px-5 py-[78px] sm:px-[max(7vw,24px)] sm:py-28" id="como-funciona">
-            <div className="section-heading mx-auto mb-[38px] flex max-w-[1240px] flex-col items-start gap-5 text-center md:flex-row md:items-end md:justify-center">
-                <div>
-                    <span className="eyebrow">Simples e transparente</span>
-                    <h2>Ajudar ficou mais fácil</h2>
-                    <p>Em três passos, sua vontade se transforma em impacto real.</p>
-                </div>
-            </div>
-            <div className="steps mx-auto grid max-w-[1100px] grid-cols-1 gap-[42px] md:grid-cols-3 md:gap-[52px]">
-                {passos.map((passo, indice) => (
-                    <article key={passo.titulo}>
-                        <span className="step-number">{String(indice + 1).padStart(2, '0')}</span>
-                        <div className="step-icon">
-                            <Icone nome={passo.icone} tamanho={29} />
-                        </div>
-                        <h3>{passo.titulo}</h3>
-                        <p className="mx-auto max-w-[420px] md:mx-0 md:max-w-none">{passo.texto}</p>
-                    </article>
-                ))}
-            </div>
-        </section>
-    );
-}
-
-function Sobre() {
-    return (
-        <section className="section px-5 py-[78px] sm:px-[max(7vw,24px)] sm:py-28" id="sobre">
-            <div className="about-section mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-[45px] md:grid-cols-[1fr_0.8fr] md:gap-25">
-                <div className="about-section__copy">
-                    <span className="eyebrow">Uma rede feita em Camaçari</span>
-                    <h2>Informação centralizada. Impacto multiplicado.</h2>
-                    <p>
-                        A Redcam aproxima organizações sociais, apoiadores e a UOSCC em um ambiente confiável. Aqui,
-                        necessidades reais não se perdem no fluxo das redes sociais.
-                    </p>
-                    <ul>
-                        {[
-                            'Demandas organizadas e atualizadas',
-                            'Contatos protegidos pela LGPD',
-                            'Acompanhamento do status de cada causa',
-                        ].map((item) => (
-                            <li key={item}>
-                                <Icone nome="check" /> {item}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="about-section__quote px-7 py-[38px] sm:p-[55px]">
-                    <Icone nome="spark" tamanho={28} />
-                    <blockquote>“Quando a informação chega à pessoa certa, a solidariedade vira ação.”</blockquote>
-                    <p>Rede UOSCC · Camaçari</p>
-                </div>
-            </div>
-        </section>
     );
 }

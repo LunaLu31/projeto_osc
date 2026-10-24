@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Route;
 | Área pública (apoiadores, sem login)
 */
 Route::get('/', Publico\FeedController::class)->name('feed');
+Route::inertia('/como-funciona', 'Publico/ComoFunciona')->name('como-funciona');
+Route::inertia('/sobre', 'Publico/Sobre')->name('sobre');
 Route::get('/demandas/{demanda}', [Publico\DemandaController::class, 'show'])->name('demandas.show');
 Route::post('/demandas/{demanda}/interesse', [Publico\ManifestacaoInteresseController::class, 'store'])
     ->middleware('throttle:manifestacoes')
@@ -60,11 +62,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [Admin\AuthController::class, 'destroy'])->name('logout');
         Route::get('/', Admin\PainelController::class)->name('painel');
 
+        Route::get('/oscs', [Admin\OscController::class, 'index'])->name('oscs.index');
+        Route::get('/oscs/criar', [Admin\OscController::class, 'create'])->name('oscs.create');
         Route::post('/oscs', [Admin\OscController::class, 'store'])->name('oscs.store');
         Route::get('/oscs/{osc}/editar', [Admin\OscController::class, 'edit'])->name('oscs.edit');
         Route::put('/oscs/{osc}', [Admin\OscController::class, 'update'])->name('oscs.update');
         Route::delete('/oscs/{osc}', [Admin\OscController::class, 'destroy'])->name('oscs.destroy');
 
+        Route::get('/demandas', [Admin\DemandaController::class, 'index'])->name('demandas.index');
         Route::patch('/demandas/{demanda}/status', [Admin\DemandaController::class, 'updateStatus'])->name('demandas.status');
         Route::delete('/demandas/{demanda}', [Admin\DemandaController::class, 'destroy'])->name('demandas.destroy');
     });

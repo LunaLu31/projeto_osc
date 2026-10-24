@@ -17,7 +17,8 @@ createServer((page) =>
         resolve: resolverPagina,
         setup: ({ App, props }) => {
             // O render é síncrono por requisição; a configuração de rotas vale para esta página.
-            globalThis.Ziggy = props.initialPage.props.ziggy;
+            const { ziggy } = props.initialPage.props;
+            globalThis.Ziggy = { ...ziggy, location: new URL(ziggy.location) };
 
             return (
                 <>

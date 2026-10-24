@@ -49,33 +49,7 @@ class MetricasOsc
                 ->where('data_manifestacao', '>=', now()->subDays(self::DIAS_RECENTES))
                 ->count(),
             'contatos_por_tipo' => $porTipo,
-            'contatos_por_mes' => $this->contatosPorMes(),
+            'contatos_por_mes' => $this->contarPorMes($this->osc->manifestacoes()->toBase(), 'data_manifestacao', self::MESES_GRAFICO),
         ];
-    }
-
-    /**
-     * Contatos recebidos por mês (AAAA-MM), do mais antigo ao atual, com zero nos meses vazios.
-     * Agrupa em PHP, no fuso da aplicação, para não depender das funções de data de cada banco.
-     *
-     * @return list<array{mes: string, total: int}>
-     */
-    private function contatosPorMes(): array
-    {
-        $inicio = now()->startOfMonth()->subMonths(self::MESES_GRAFICO - 1);
-
-        $totais = $this->osc->manifestacoes()
-            ->where('data_manifestacao', '>=', $inicio)
-            ->toBase()
-            ->pluck('data_manifestacao')
-            ->countBy(fn (string $data) => substr($data, 0, 7));
-
-        $serie = [];
-
-        for ($i = 0; $i < self::MESES_GRAFICO; $i++) {
-            $mes = $inicio->copy()->addMonths($i)->format('Y-m');
-            $serie[] = ['mes' => $mes, 'total' => (int) ($totais[$mes] ?? 0)];
-        }
-
-        return $serie;
     }
 }

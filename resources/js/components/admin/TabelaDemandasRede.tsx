@@ -16,7 +16,7 @@ export default function TabelaDemandasRede({
     carregando: boolean;
 }) {
     return (
-        <CartaoPainel className="mt-5">
+        <CartaoPainel className="mt-8">
             <div className="section-heading--compact">
                 <div>
                     <span className="eyebrow">Moderação</span>

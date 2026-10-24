@@ -16,11 +16,31 @@ use Inertia\Response;
  */
 class OscController extends Controller
 {
+    private const OSCS_POR_PAGINA = 10;
+
+    /**
+     * Aba "Rede": OSCs cadastradas, paginadas no servidor.
+     */
+    public function index(): Response
+    {
+        return Inertia::render('Admin/Rede', [
+            'oscs' => OscResource::collection(Osc::withCount('demandas')
+                ->orderBy('nome')
+                ->paginate(self::OSCS_POR_PAGINA, pageName: 'pagina_oscs')
+                ->withQueryString()),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Admin/OscForm', ['osc' => null]);
+    }
+
     public function store(OscRequest $request, GestaoOscs $gestao): RedirectResponse
     {
         [, $senhaGerada] = $gestao->cadastrar($request->user('admin'), $request->dadosOsc(), $request->validated('password'));
 
-        return redirect()->route('admin.painel')
+        return redirect()->route('admin.oscs.index')
             ->with('status', 'OSC cadastrada com sucesso.')
             ->with('senha_inicial', $senhaGerada);
     }
@@ -34,13 +54,13 @@ class OscController extends Controller
     {
         $gestao->atualizar($osc, $request->dadosOsc(), $request->validated('password'));
 
-        return redirect()->route('admin.painel')->with('status', 'OSC atualizada com sucesso.');
+        return redirect()->route('admin.oscs.index')->with('status', 'OSC atualizada com sucesso.');
     }
 
     public function destroy(Osc $osc, GestaoOscs $gestao): RedirectResponse
     {
         $gestao->excluir($osc);
 
-        return redirect()->route('admin.painel')->with('status', 'OSC excluída com suas demandas e manifestações.');
+        return redirect()->route('admin.oscs.index')->with('status', 'OSC excluída com suas demandas e manifestações.');
     }
 }

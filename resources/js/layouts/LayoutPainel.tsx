@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import AlternarTema from '@/components/AlternarTema';
 import Container from '@/components/Container';
 import Logo from '@/components/Logo';
+import MenuPainel, { type SecaoPainel } from '@/components/MenuPainel';
 
 interface LayoutPainelProps {
     titulo: string;
@@ -10,11 +11,13 @@ interface LayoutPainelProps {
     perfil: string;
     inicio: string;
     sair: string;
+    /** Abas do menu lateral, sempre à vista: com os nomes no desktop, só os ícones em telas pequenas. */
+    secoes: SecaoPainel[];
     children: ReactNode;
 }
 
-/** Layout dos painéis privados (OSC e administrador). */
-export default function LayoutPainel({ titulo, usuario, perfil, inicio, sair, children }: LayoutPainelProps) {
+/** Layout dos painéis privados (OSC e administrador): cabeçalho e menu lateral fixo. */
+export default function LayoutPainel({ titulo, usuario, perfil, inicio, sair, secoes, children }: LayoutPainelProps) {
     return (
         <>
             <Head title={titulo}>
@@ -41,9 +44,17 @@ export default function LayoutPainel({ titulo, usuario, perfil, inicio, sair, ch
                 </div>
             </header>
 
-            <Container as="main" id="conteudo" className="pt-14 pb-25">
-                {children}
-            </Container>
+            <div className="flex">
+                <aside className="menu-lateral">
+                    <MenuPainel secoes={secoes} />
+                </aside>
+
+                <div className="min-w-0 flex-1">
+                    <Container as="main" id="conteudo" className="pt-14 pb-25">
+                        {children}
+                    </Container>
+                </div>
+            </div>
         </>
     );
 }

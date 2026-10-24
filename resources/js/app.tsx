@@ -8,8 +8,9 @@ createInertiaApp({
     title: tituloDaPagina,
     resolve: resolverPagina,
     setup({ el, App, props }) {
-        // Rotas nomeadas do Laravel para a função route() do ziggy-js.
-        globalThis.Ziggy = props.initialPage.props.ziggy;
+        // Rotas nomeadas do Laravel para a função route() do ziggy-js. Sem `location`: no navegador
+        // a página muda sem recarregar, e a aba atual dos menus vem de useRotaAtual().
+        globalThis.Ziggy = { ...props.initialPage.props.ziggy, location: undefined };
 
         const app = (
             <StrictMode>

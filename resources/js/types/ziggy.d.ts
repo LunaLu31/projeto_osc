@@ -2,6 +2,8 @@
 declare module 'ziggy-js' {
   interface RouteList {
     "feed": [],
+    "como-funciona": [],
+    "sobre": [],
     "demandas.show": [
         {
             "name": "demanda",
@@ -66,6 +68,8 @@ declare module 'ziggy-js' {
     "admin.configuracao": [],
     "admin.logout": [],
     "admin.painel": [],
+    "admin.oscs.index": [],
+    "admin.oscs.create": [],
     "admin.oscs.store": [],
     "admin.oscs.edit": [
         {
@@ -88,6 +92,7 @@ declare module 'ziggy-js' {
             "binding": "id_osc"
         }
     ],
+    "admin.demandas.index": [],
     "admin.demandas.status": [
         {
             "name": "demanda",

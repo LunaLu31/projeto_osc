@@ -37,6 +37,12 @@ class FeedPublicoTest extends TestCase
                 ->has('ziggy.routes'));
     }
 
+    public function test_how_it_works_and_about_have_their_own_pages(): void
+    {
+        $this->get('/como-funciona')->assertOk()->assertInertia(fn (Assert $pagina) => $pagina->component('Publico/ComoFunciona'));
+        $this->get('/sobre')->assertOk()->assertInertia(fn (Assert $pagina) => $pagina->component('Publico/Sobre'));
+    }
+
     public function test_feed_hides_concluded_demands_and_lists_urgent_first(): void
     {
         Demanda::factory()->create(['titulo' => 'Demanda comum']);

@@ -8,32 +8,42 @@ use App\Http\Resources\V1\OscResource;
 use App\Models\Demanda;
 use App\Models\Osc;
 use App\Services\MetricasRede;
+use Illuminate\Database\Eloquent\Builder;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Painel do administrador: métricas globais e gestão da rede (RF09).
+ * Visão geral do administrador: gráficos da rede e listas que pedem ação (RF09).
  */
 class PainelController extends Controller
 {
-    private const OSCS_POR_PAGINA = 10;
-
-    private const DEMANDAS_POR_PAGINA = 15;
+    private const ITENS_POR_LISTA = 5;
 
     public function __invoke(): Response
     {
+        // Demandas ainda no feed público cujo prazo já passou: candidatas à moderação.
+        $prazosVencidos = Demanda::publicas()->where('prazo', '<', today()->toDateString());
+        // OSCs cadastradas que não têm nada publicado agora: acompanhamento da adesão.
+        $oscsSemDemandasAtivas = Osc::whereDoesntHave('demandas', fn (Builder $q) => $q->publicas());
+
         return Inertia::render('Admin/Painel', [
-            'metricas' => (new MetricasRede)->resumo(),
-            // Listas paginadas no servidor, cada uma com seu parâmetro de página.
-            'oscs' => OscResource::collection(Osc::withCount('demandas')
-                ->orderBy('nome')
-                ->paginate(self::OSCS_POR_PAGINA, pageName: 'pagina_oscs')
-                ->withQueryString()),
-            'demandas' => DemandaResource::collection(Demanda::with('osc:id_osc,nome,area_atuacao,descricao,endereco')
-                ->withCount('manifestacoes')
-                ->latest('data_criacao')
-                ->paginate(self::DEMANDAS_POR_PAGINA, pageName: 'pagina_demandas')
-                ->withQueryString()),
+            'metricas' => (new MetricasRede)->detalhado(),
+            'prazosVencidos' => [
+                'total' => $prazosVencidos->clone()->count(),
+                'itens' => DemandaResource::collection($prazosVencidos
+                    ->with('osc:id_osc,nome,area_atuacao,descricao,endereco')
+                    ->orderBy('prazo')
+                    ->limit(self::ITENS_POR_LISTA)
+                    ->get())->resolve(),
+            ],
+            'oscsSemDemandasAtivas' => [
+                'total' => $oscsSemDemandasAtivas->clone()->count(),
+                'itens' => OscResource::collection($oscsSemDemandasAtivas
+                    ->withCount('demandas')
+                    ->orderBy('data_cadastro')
+                    ->limit(self::ITENS_POR_LISTA)
+                    ->get())->resolve(),
+            ],
         ]);
     }
 }

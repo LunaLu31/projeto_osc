@@ -4,6 +4,7 @@ import { route } from 'ziggy-js';
 import AlternarTema from '@/components/AlternarTema';
 import Icone from '@/components/Icone';
 import Logo from '@/components/Logo';
+import { useRotaAtual } from '@/hooks/useRotaAtual';
 
 /** Tempo para fechar ao tirar o mouse: tolera o trajeto do botão até o menu. */
 const ATRASO_FECHAR_MS = 250;
@@ -27,6 +28,7 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
     const abertoPorHover = useRef(false);
     const temporizadorFechar = useRef<number | undefined>(undefined);
     const feed = route('feed');
+    const rotaAtual = useRotaAtual();
 
     const cancelarFechamento = () => window.clearTimeout(temporizadorFechar.current);
 
@@ -139,15 +141,22 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
                         className={menuAberto ? 'nav nav--open' : 'nav'}
                         aria-label="Navegação principal"
                     >
-                        <a href={`${feed}#demandas`} onClick={() => setMenuAberto(false)}>
+                        <a
+                            href={`${feed}#demandas`}
+                            aria-current={rotaAtual('feed') ? 'page' : undefined}
+                            onClick={() => setMenuAberto(false)}
+                        >
                             <Icone nome="home" /> Demandas
                         </a>
-                        <a href={`${feed}#como-funciona`} onClick={() => setMenuAberto(false)}>
+                        <Link
+                            href={route('como-funciona')}
+                            aria-current={rotaAtual('como-funciona') ? 'page' : undefined}
+                        >
                             <Icone nome="spark" /> Como funciona
-                        </a>
-                        <a href={`${feed}#sobre`} onClick={() => setMenuAberto(false)}>
+                        </Link>
+                        <Link href={route('sobre')} aria-current={rotaAtual('sobre') ? 'page' : undefined}>
                             <Icone nome="people" /> Sobre a rede
-                        </a>
+                        </Link>
                         <Link href={route('osc.login')}>
                             <Icone nome="user" /> Área da OSC
                         </Link>
@@ -170,7 +179,8 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
                     <div>
                         <strong>Navegue</strong>
                         <a href={`${feed}#demandas`}>Demandas</a>
-                        <a href={`${feed}#como-funciona`}>Como funciona</a>
+                        <Link href={route('como-funciona')}>Como funciona</Link>
+                        <Link href={route('sobre')}>Sobre a rede</Link>
                         <Link href={route('osc.login')}>Área da OSC</Link>
                     </div>
                     <div className="footer-signature">

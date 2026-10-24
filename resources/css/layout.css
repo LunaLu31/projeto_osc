@@ -287,4 +287,27 @@
     .dashboard-user__info small {
         color: var(--color-muted);
     }
+
+    /*
+     * Menu lateral dos painéis (resources/js/layouts/LayoutPainel.tsx): sempre à vista, abaixo do cabeçalho.
+     * Até o lg é uma coluna estreita só com ícones; a partir do lg mostra também os nomes das abas.
+     */
+    .menu-lateral {
+        position: sticky;
+        top: 78px;
+        flex: 0 0 auto;
+        width: 64px;
+        height: calc(100dvh - 78px);
+        padding: 20px 8px;
+        overflow-y: auto;
+        border-right: 1px solid var(--color-line);
+        background: var(--color-surface);
+    }
+
+    @media (width >= 62.5625rem) {
+        .menu-lateral {
+            width: 248px;
+            padding: 28px 14px;
+        }
+    }
 }

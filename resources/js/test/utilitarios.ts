@@ -27,7 +27,7 @@ export function propsCompartilhadas(extra: Partial<PropsCompartilhadas> = {}): P
             statusPublicos: ['Aberta', 'Parcial'],
             tiposInteresse: ['Apoiador/Doação', 'Voluntário', 'Aluno'],
         },
-        ziggy: { url: 'http://localhost', port: null, defaults: {}, routes: {} },
+        ziggy: { url: 'http://localhost', port: null, defaults: {}, routes: {}, location: 'http://localhost/' },
         errors: {},
         ...extra,
     };

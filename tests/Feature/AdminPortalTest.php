@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Adm;
 use App\Models\Demanda;
+use App\Models\ManifestacaoInteresse;
 use App\Models\Osc;
+use App\Services\MetricasRede;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -81,13 +83,15 @@ class AdminPortalTest extends TestCase
         $this->assertGuest('admin');
     }
 
-    public function test_dashboard_shows_global_metrics_and_every_osc_of_the_network(): void
+    public function test_overview_shows_the_network_charts(): void
     {
         $admin = Adm::factory()->create();
-        $ownedOsc = Osc::factory()->for($admin, 'adm')->create(['nome' => 'OSC cadastrada por mim']);
-        $otherOsc = Osc::factory()->create(['nome' => 'OSC de outro admin']);
-        Demanda::factory()->for($ownedOsc)->create(['titulo' => 'Demanda da primeira OSC']);
-        Demanda::factory()->for($otherOsc)->status(Demanda::STATUS_CONCLUIDA)->create(['titulo' => 'Demanda da segunda OSC']);
+        $osc = Osc::factory()->create();
+        Demanda::factory()->for($osc)->create(['categoria' => 'Alimentos']);
+        Demanda::factory()->for($osc)->create(['categoria' => 'Alimentos']);
+        Demanda::factory()->for($osc)->create(['categoria' => 'Higiene']);
+        Demanda::factory()->for($osc)->status(Demanda::STATUS_CONCLUIDA)->create(['categoria' => 'Saúde']);
+        ManifestacaoInteresse::factory()->for(Demanda::first())->create();
 
         $this->actingAs($admin, 'admin')
             ->get('/admin')
@@ -95,30 +99,101 @@ class AdminPortalTest extends TestCase
             ->assertInertia(fn (Assert $pagina) => $pagina
                 ->component('Admin/Painel')
                 ->where('auth.admin.id', $admin->id_admin)
-                ->where('metricas.total_oscs', 2)
-                ->has('oscs.data', 2)
-                ->where('oscs.meta.total', 2)
-                ->has('demandas.data', 2)
-                ->where('demandas.meta.total', 2));
+                ->where('metricas.demandas_ativas', 3)
+                ->where('metricas.demandas_por_status.Concluída', 1)
+                ->has('metricas.manifestacoes_por_mes', MetricasRede::MESES_GRAFICO)
+                ->where('metricas.manifestacoes_por_mes.'.(MetricasRede::MESES_GRAFICO - 1).'.total', 1));
 
-        $resposta = $this->get('/admin');
-        $this->assertEqualsCanonicalizing(['OSC cadastrada por mim', 'OSC de outro admin'], $this->coluna($resposta, 'oscs.data', 'nome'));
-        $this->assertEqualsCanonicalizing(['Demanda da primeira OSC', 'Demanda da segunda OSC'], $this->coluna($resposta, 'demandas.data', 'titulo'));
+        // Só demandas ativas, da categoria mais pedida para a menos pedida.
+        $categorias = $this->get('/admin')->viewData('page')['props']['metricas']['demandas_ativas_por_categoria'];
+        $this->assertSame(['Alimentos' => 2, 'Higiene' => 1], array_slice($categorias, 0, 2, true));
+        $this->assertSame(0, $categorias['Saúde']);
     }
 
-    public function test_dashboard_lists_are_paginated_independently(): void
+    public function test_overview_lists_what_needs_the_admin_attention(): void
+    {
+        $admin = Adm::factory()->create();
+        $ativa = Osc::factory()->create(['nome' => 'OSC ativa']);
+        $parada = Osc::factory()->create(['nome' => 'OSC parada']);
+        Demanda::factory()->for($ativa)->create(['titulo' => 'Prazo vencido', 'prazo' => today()->subDay()]);
+        Demanda::factory()->for($ativa)->create(['prazo' => today()->addWeek()]);
+        Demanda::factory()->for($parada)->status(Demanda::STATUS_CONCLUIDA)->create(['prazo' => today()->subMonth()]);
+
+        $this->actingAs($admin, 'admin')
+            ->get('/admin')
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                // A demanda concluída com prazo passado já saiu do feed: não pede moderação.
+                ->where('prazosVencidos.total', 1)
+                ->where('prazosVencidos.itens.0.titulo', 'Prazo vencido')
+                ->where('prazosVencidos.itens.0.osc.nome', 'OSC ativa')
+                ->where('oscsSemDemandasAtivas.total', 1)
+                ->where('oscsSemDemandasAtivas.itens.0.nome', 'OSC parada')
+                ->where('oscsSemDemandasAtivas.itens.0.total_demandas', 1));
+    }
+
+    public function test_network_tab_lists_every_osc_of_the_network(): void
+    {
+        $admin = Adm::factory()->create();
+        $ownedOsc = Osc::factory()->for($admin, 'adm')->create(['nome' => 'OSC cadastrada por mim']);
+        $otherOsc = Osc::factory()->create(['nome' => 'OSC de outro admin']);
+        Demanda::factory()->for($ownedOsc)->create();
+
+        $this->actingAs($admin, 'admin')
+            ->get('/admin/oscs')
+            ->assertOk()
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Admin/Rede')
+                ->has('oscs.data', 2)
+                ->where('oscs.meta.total', 2));
+
+        $resposta = $this->get('/admin/oscs');
+        $this->assertEqualsCanonicalizing([$ownedOsc->nome, $otherOsc->nome], $this->coluna($resposta, 'oscs.data', 'nome'));
+        $this->assertEqualsCanonicalizing([1, 0], $this->coluna($resposta, 'oscs.data', 'total_demandas'));
+    }
+
+    public function test_network_tab_paginates_the_oscs(): void
     {
         $admin = Adm::factory()->create();
         Osc::factory(12)->for($admin, 'adm')->create();
-        Demanda::factory(17)->create();
 
         $this->actingAs($admin, 'admin')
-            ->get('/admin?pagina_oscs=2&pagina_demandas=2')
+            ->get('/admin/oscs?pagina_oscs=2')
             ->assertInertia(fn (Assert $pagina) => $pagina
-                ->where('metricas.total_oscs', 29)
-                ->has('oscs.data', 10)
+                ->has('oscs.data', 2)
                 ->where('oscs.meta.current_page', 2)
-                ->where('oscs.meta.total', 29)
+                ->where('oscs.meta.total', 12));
+    }
+
+    public function test_registration_tab_shows_an_empty_osc_form(): void
+    {
+        $this->actingAs(Adm::factory()->create(), 'admin')
+            ->get('/admin/oscs/criar')
+            ->assertOk()
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Admin/OscForm')
+                ->where('osc', null));
+    }
+
+    public function test_moderation_tab_lists_every_demand_of_the_network_paginated(): void
+    {
+        $admin = Adm::factory()->create();
+        Demanda::factory()->for(Osc::factory())->create(['titulo' => 'Demanda da primeira OSC']);
+        Demanda::factory()->for(Osc::factory())->create(['titulo' => 'Demanda da segunda OSC']);
+
+        $this->actingAs($admin, 'admin')
+            ->get('/admin/demandas')
+            ->assertOk()
+            ->assertInertia(fn (Assert $pagina) => $pagina
+                ->component('Admin/Moderacao')
+                ->has('demandas.data', 2)
+                ->where('demandas.meta.total', 2));
+
+        $resposta = $this->get('/admin/demandas');
+        $this->assertEqualsCanonicalizing(['Demanda da primeira OSC', 'Demanda da segunda OSC'], $this->coluna($resposta, 'demandas.data', 'titulo'));
+
+        Demanda::factory(15)->create();
+        $this->get('/admin/demandas?pagina_demandas=2')
+            ->assertInertia(fn (Assert $pagina) => $pagina
                 ->has('demandas.data', 2)
                 ->where('demandas.meta.current_page', 2)
                 ->where('demandas.meta.total', 17));
@@ -133,7 +208,7 @@ class AdminPortalTest extends TestCase
                 'password' => 'senhaOsc123',
                 'password_confirmation' => 'senhaOsc123',
             ]))
-            ->assertRedirect('/admin');
+            ->assertRedirect('/admin/oscs');
 
         $this->assertDatabaseHas('oscs', [
             'id_admin' => $admin->id_admin,
@@ -149,7 +224,7 @@ class AdminPortalTest extends TestCase
 
         $this->actingAs($admin, 'admin')
             ->post('/admin/oscs', $this->oscPayload())
-            ->assertRedirect('/admin')
+            ->assertRedirect('/admin/oscs')
             ->assertSessionHas('senha_inicial');
 
         $senha = session('senha_inicial');
@@ -181,10 +256,10 @@ class AdminPortalTest extends TestCase
                 ->where('osc.nome', 'OSC editável'));
 
         $this->put("/admin/oscs/{$osc->id_osc}", $this->oscPayload(['nome' => 'OSC atualizada', 'email' => $osc->email]))
-            ->assertRedirect('/admin');
+            ->assertRedirect('/admin/oscs');
         $this->assertDatabaseHas('oscs', ['id_osc' => $osc->id_osc, 'nome' => 'OSC atualizada']);
 
-        $this->delete("/admin/oscs/{$osc->id_osc}")->assertRedirect('/admin');
+        $this->delete("/admin/oscs/{$osc->id_osc}")->assertRedirect('/admin/oscs');
         $this->assertDatabaseMissing('oscs', ['id_osc' => $osc->id_osc]);
         $this->assertDatabaseMissing('demandas', ['id_demanda' => $demanda->id_demanda]);
     }
@@ -207,7 +282,9 @@ class AdminPortalTest extends TestCase
         Adm::factory()->create();
         $demanda = Demanda::factory()->create();
 
-        $this->get('/admin')->assertRedirect('/admin/login');
+        foreach (['/admin', '/admin/oscs', '/admin/oscs/criar', '/admin/demandas'] as $aba) {
+            $this->get($aba)->assertRedirect('/admin/login');
+        }
         $this->post('/admin/oscs', $this->oscPayload())->assertRedirect('/admin/login');
 
         $this->actingAs($demanda->osc, 'osc');
