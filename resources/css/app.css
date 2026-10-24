@@ -1,11 +1,118 @@
+/*
+ * Redcam – design system
+ * Ponto de entrada do Vite.
+ *
+ * - Tokens: cores semânticas no @theme (geram utilitários como `bg-surface`, `text-accent`).
+ *   O tema escuro apenas redefine os mesmos tokens (ver theme.css).
+ * - Layout e responsividade: utilitários do Tailwind nos componentes React (mobile first).
+ * - Aparência dos componentes do design system: classes em @layer components,
+ *   que os utilitários podem sobrescrever quando necessário.
+ */
 @import 'tailwindcss';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/manrope';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@import './theme.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './pages/feed.css';
+@import './pages/demanda.css';
+@import './pages/painel.css';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.{ts,tsx}';
+
+/* Variante `dark:` ligada à preferência salva (data-theme no <html>) ou à do sistema. */
+@custom-variant dark {
+    &:where([data-theme='escuro'], [data-theme='escuro'] *) {
+        @slot;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        &:where([data-theme='sistema'], [data-theme='sistema'] *) {
+            @slot;
+        }
+    }
+}
+
+@theme static {
+    --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+
+    /* Pontos de quebra mobile first (min-width): 561px, 781px, 1001px e 1061px. */
+    --breakpoint-sm: 35.0625rem;
+    --breakpoint-md: 48.8125rem;
+    --breakpoint-lg: 62.5625rem;
+    --breakpoint-xl: 66.3125rem;
+
+    /*
+     * Cores semânticas: light-dark(tema claro, tema escuro).
+     * O tema ativo é definido por `color-scheme` no <html> (theme.css).
+     */
+
+    /* Texto */
+    --color-ink: light-dark(#18304b, #e3ecf5);
+    --color-muted: light-dark(#5e7188, #a3b6ca);
+    /* Cor da marca: fundos de botões, logotipo e destaques (igual nos dois temas).
+       Ajustada de #347db8 para texto branco atingir 4,5:1 (WCAG AA). */
+    --color-primary: #337ab4;
+    --color-primary-dark: #245d8d;
+    --color-on-primary: #ffffff;
+    /* Cor da marca em textos e ícones: ≥ 4,5:1 sobre todos os fundos (WCAG AA) */
+    --color-accent: light-dark(#2f70a6, #6cb2ec);
+    --color-accent-strong: light-dark(#245d8d, #b3d8f6);
+    /* Fundo suave da marca (selos, avisos, item ativo) */
+    --color-primary-light: light-dark(#e2f1fc, #17324c);
+    --color-lime: #b9e1fa;
+    /* Estados */
+    /* Alertas e urgência: ≥ 4,5:1 sobre o fundo coral claro (WCAG AA) */
+    --color-coral: light-dark(#cc381d, #ff8b74);
+    --color-coral-dark: light-dark(#a33f2d, #ffb4a4);
+    --color-coral-light: light-dark(#fff0ec, #3a1f1c);
+    --color-danger-line: light-dark(#f1ad9f, #7a3a30);
+    --color-danger-surface: light-dark(#fffaf8, #2a1714);
+    /* Fundo de ação destrutiva com texto branco (≥ 4,5:1 nos dois temas) */
+    --color-danger-solid: #cc381d;
+    --color-danger-solid-hover: #a82b14;
+    --color-blue: light-dark(#456ba1, #a6c1ee);
+    --color-blue-light: light-dark(#eaf2ff, #1c2b47);
+    --color-success: light-dark(#2f7a4b, #86d0a1);
+    --color-success-light: light-dark(#eaf6ee, #15301f);
+    --color-warning-light: light-dark(#fff8e6, #2f2711);
+    --color-warning-line: light-dark(#e8cf8e, #6b5a24);
+    --color-neutral-light: light-dark(#eff2f1, #22354b);
+    /* Superfícies */
+    --color-canvas: light-dark(#f5f9fd, #0c1622);
+    --color-surface: light-dark(#ffffff, #132233);
+    --color-surface-soft: light-dark(#f8fbfe, #172a3f);
+    --color-surface-muted: light-dark(#f2f7fb, #1b2f46);
+    --color-tinted: light-dark(#edf6fd, #0f1e2e);
+    --color-header: light-dark(rgb(255 255 255 / 0.9), rgb(19 34 51 / 0.9));
+    --color-header-solid: light-dark(rgb(255 255 255 / 0.95), rgb(19 34 51 / 0.95));
+    --color-header-line: light-dark(rgb(220 232 242 / 0.88), rgb(36 58 82 / 0.88));
+    /* Bordas */
+    --color-line: light-dark(#dce8f2, #243a52);
+    --color-line-soft: light-dark(#e8eef4, #1f3348);
+    --color-line-strong: light-dark(#bdd2e4, #35526f);
+    --color-line-hover: light-dark(#a9bfd1, #4a6a8a);
+    /* Sombras e brilhos (usados com color-mix para transparência) */
+    --color-sombra: light-dark(#1c4267, #000000);
+    --color-hero-brilho: light-dark(#a7dafa, #347db8);
+    /* Ilustrações (hero, passos e avatares) */
+    --color-hero-1: light-dark(#eaf6ff, #0f2236);
+    --color-hero-2: light-dark(#f8fbff, #0d1a29);
+    --color-hero-3: light-dark(#e3f1fc, #12293f);
+    --color-avatar-2: light-dark(#fff0ce, #3b3218);
+    --color-avatar-3: light-dark(#e5f0ff, #1b2c48);
+    --color-step-line: light-dark(#9dbbd4, #3b5876);
+    --color-step-number: light-dark(#5e7188, #7e98b3);
+    --color-step-border: light-dark(#c8deef, #2c4560);
+    /* Gráficos: série única no azul da marca. Validada nos dois temas (faixa de luminosidade
+       OKLCH, croma mínimo e contraste ≥ 3:1 sobre a superfície); o escuro tem o próprio tom. */
+    --color-grafico-serie: light-dark(#2f70a6, #4a93d0);
+    --color-grafico-serie-ativa: light-dark(#245d8d, #6cb2ec);
+
+    --shadow-card: 0 22px 60px color-mix(in srgb, var(--color-sombra) 10%, transparent);
+    --shadow-button: 0 9px 20px color-mix(in srgb, var(--color-accent) 17%, transparent);
 }

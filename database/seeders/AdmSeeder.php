@@ -2,16 +2,21 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Adm;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
+/**
+ * Administrador padrão para desenvolvimento (mesmo do script físico).
+ * Troque a senha antes de usar em produção.
+ */
 class AdmSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
+        Adm::firstOrCreate(
+            ['email' => 'admin@uoscc.org'],
+            ['nome' => 'Administrador UOSCC', 'senha_hash' => Hash::make('admin123')],
+        );
     }
 }

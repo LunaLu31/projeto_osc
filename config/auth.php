@@ -1,6 +1,7 @@
 <?php
 
-use App\Models\User;
+use App\Models\Adm;
+use App\Models\Osc;
 
 return [
 
@@ -16,8 +17,8 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'guard' => env('AUTH_GUARD', 'osc'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'oscs'),
     ],
 
     /*
@@ -33,14 +34,40 @@ return [
     | users are actually retrieved out of your database or other storage
     | system used by the application. Typically, Eloquent is utilized.
     |
-    | Supported: "session"
+    | Supported: "session", "jwt" (app/Auth/JwtGuard.php, registrado no AppServiceProvider)
     |
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+        // Site: JWT em cookie HttpOnly (config/jwt.php). Área da OSC (RF01).
+        'osc' => [
+            'driver' => 'jwt',
+            'provider' => 'oscs',
+            'perfil' => 'osc',
+            'origem' => 'cookie',
+        ],
+
+        // Site: portal administrativo (RF01).
+        'admin' => [
+            'driver' => 'jwt',
+            'provider' => 'adms',
+            'perfil' => 'admin',
+            'origem' => 'cookie',
+        ],
+
+        // API REST: o mesmo JWT, no cabeçalho Authorization: Bearer (middleware jwt:osc / jwt:admin).
+        'api_osc' => [
+            'driver' => 'jwt',
+            'provider' => 'oscs',
+            'perfil' => 'osc',
+            'origem' => 'bearer',
+        ],
+
+        'api_admin' => [
+            'driver' => 'jwt',
+            'provider' => 'adms',
+            'perfil' => 'admin',
+            'origem' => 'bearer',
         ],
     ],
 
@@ -62,15 +89,16 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'oscs' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => Osc::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'adms' => [
+            'driver' => 'eloquent',
+            'model' => Adm::class,
+        ],
+
     ],
 
     /*
@@ -93,8 +121,9 @@ return [
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
+        // Base para o "esqueci minha senha" da OSC (versão B).
+        'oscs' => [
+            'provider' => 'oscs',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,

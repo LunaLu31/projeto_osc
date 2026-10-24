@@ -3,15 +3,58 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "dev": "vite",
         "build": "vite build",
-        "dev": "vite"
+        "build:ssr": "vite build && vite build --ssr",
+        "types": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "lint": "eslint resources/js vite.config.ts",
+        "format": "prettier --write resources/js",
+        "format:check": "prettier --check resources/js",
+        "rotas:tipos": "php artisan ziggy:generate --types-only resources/js/types/ziggy.js",
+        "verificar": "npm run types && npm run lint && npm run format:check && openapi-typescript docs/openapi.json -o resources/js/types/api.d.ts --check",
+        "tipos:api": "openapi-typescript docs/openapi.json -o resources/js/types/api.d.ts"
     },
     "devDependencies": {
+        "@eslint/js": "^9.39.5",
         "@tailwindcss/vite": "^4.0.0",
-        "axios": "^1.11.0",
+        "@testing-library/jest-dom": "7.0.1",
+        "@testing-library/react": "16.3.3",
+        "@testing-library/user-event": "14.6.8",
+        "@types/node": "^24.19.2",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@vitejs/plugin-react": "^5.2.0",
+        "axe-core": "4.14.0",
+        "babel-plugin-react-compiler": "1.0.0",
         "concurrently": "^9.0.1",
+        "eslint": "^9.39.5",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "globals": "^17.13.0",
+        "jsdom": "30.1.3",
         "laravel-vite-plugin": "^2.0.0",
+        "openapi-typescript": "7.13.0",
+        "prettier": "^3.9.10",
+        "swagger-ui-dist": "5.34.0",
         "tailwindcss": "^4.0.0",
-        "vite": "^7.0.7"
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.72.0",
+        "vite": "^7.0.7",
+        "vitest": "4.1.12"
+    },
+    "dependencies": {
+        "@fontsource-variable/dm-sans": "5.3.0",
+        "@fontsource-variable/manrope": "5.3.0",
+        "@inertiajs/react": "3.9.1",
+        "react": "19.3.1",
+        "react-dom": "19.3.1",
+        "ziggy-js": "2.6.5"
+    },
+    "overrides": {
+        "openapi-typescript": {
+            "typescript": "$typescript"
+        }
     }
 }

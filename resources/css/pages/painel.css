@@ -1,0 +1,427 @@
+/*
+ * Painéis da OSC (RF08) e do administrador (RF09).
+ * Grades e espaçamentos responsivos estão nos utilitários dos componentes React.
+ */
+@layer components {
+    .dashboard-title h1 {
+        margin: 7px 0;
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 700;
+        letter-spacing: -0.045em;
+    }
+
+    .dashboard-title p {
+        color: var(--color-muted);
+    }
+
+    .metric-grid article {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 21px;
+        border: 1px solid var(--color-line);
+        border-radius: 16px;
+        background: var(--color-surface);
+    }
+
+    .metric-grid article > div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .metric-grid strong {
+        font-family: var(--font-display);
+        font-size: 24px;
+    }
+
+    .metric-grid span {
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .metric-grid small {
+        margin-top: 2px;
+        color: var(--color-muted);
+        font-size: 11px;
+    }
+
+    .metric-icon {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 14px;
+    }
+
+    .metric-icon--blue {
+        background: var(--color-blue-light);
+        color: var(--color-blue);
+    }
+
+    .metric-icon--green {
+        background: var(--color-primary-light);
+        color: var(--color-accent);
+    }
+
+    .metric-icon--orange {
+        background: var(--color-coral-light);
+        color: var(--color-coral);
+    }
+
+    .dashboard-list {
+        border: 1px solid var(--color-line);
+        border-radius: 18px;
+        background: var(--color-surface);
+    }
+
+    .dashboard-list + .dashboard-list {
+        margin-top: 20px;
+    }
+
+    .section-heading--compact {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .section-heading--compact h2 {
+        margin-top: 4px;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .section-heading--compact span:last-child {
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    /* Alteração de status em linha (RF07) */
+    .status-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-form select {
+        height: 36px;
+        max-width: 190px;
+        padding: 0 10px;
+        border: 1px solid var(--color-line);
+        border-radius: 10px;
+        background: var(--color-surface-soft);
+        font-size: 13px;
+    }
+
+    /* ---------- Abas do menu lateral dos painéis (OSC e administrador) ---------- */
+    .painel-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .painel-nav a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-radius: 10px;
+        color: var(--color-muted);
+        font-size: 15px;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: color 160ms ease, background 160ms ease;
+    }
+
+    .painel-nav a:hover,
+    .painel-nav a[aria-current='page'] {
+        background: var(--color-primary-light);
+        color: var(--color-accent);
+    }
+
+    /* Só ícones até o lg: o rótulo some da tela, mas continua sendo o nome acessível do link. */
+    .painel-nav__rotulo {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+
+    @media (width >= 62.5625rem) {
+        .painel-nav a {
+            justify-content: flex-start;
+            padding: 12px 14px;
+        }
+
+        .painel-nav__rotulo {
+            position: static;
+            width: auto;
+            height: auto;
+            overflow: visible;
+            clip-path: none;
+        }
+    }
+
+    /* Listas curtas da visão geral */
+    .lista-resumo {
+        display: grid;
+    }
+
+    .lista-resumo li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--color-line-soft);
+        font-size: 14px;
+    }
+
+    .lista-resumo li:last-child {
+        border-bottom: 0;
+    }
+
+    .lista-resumo li > div {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .lista-resumo small {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .lista-resumo time {
+        flex: 0 0 auto;
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    /* Abas de filtro por status */
+    .filtro-abas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .filtro-abas a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        color: var(--color-muted);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .filtro-abas a span {
+        min-width: 22px;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: var(--color-canvas);
+        font-size: 11px;
+        text-align: center;
+    }
+
+    .filtro-abas a[aria-current='page'] {
+        border-color: var(--color-accent);
+        background: var(--color-primary-light);
+        color: var(--color-accent);
+    }
+
+    /* Filtros dos contatos */
+    .filtros-painel .field {
+        margin-top: 0;
+    }
+
+    .contato-meios a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--color-accent);
+        overflow-wrap: anywhere;
+    }
+
+    .contato-meios a + a {
+        margin-top: 6px;
+    }
+
+    .contato-mensagem {
+        max-width: 320px;
+        color: var(--color-muted);
+        white-space: pre-line;
+    }
+
+    /* ---------- Gráficos (components/graficos) ---------- */
+    .grafico svg {
+        overflow: visible;
+    }
+
+    .grafico text {
+        fill: var(--color-muted);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .grafico .grafico__valor {
+        fill: var(--color-ink);
+        font-weight: 700;
+    }
+
+    .grafico__grade,
+    .grafico__base {
+        stroke: var(--color-line-soft);
+        stroke-width: 1px;
+        shape-rendering: crispEdges;
+    }
+
+    .grafico__base {
+        stroke: var(--color-line-strong);
+    }
+
+    .grafico__coluna {
+        fill: var(--color-grafico-serie);
+        transition: fill 120ms ease;
+    }
+
+    .grafico__coluna--ativa {
+        fill: var(--color-grafico-serie-ativa);
+    }
+
+    .grafico__marca {
+        pointer-events: none;
+    }
+
+    .grafico__alvo {
+        fill: transparent;
+        cursor: default;
+        outline: none;
+    }
+
+    .grafico__alvo:hover,
+    .grafico__alvo:focus-visible {
+        fill: color-mix(in srgb, var(--color-grafico-serie) 7%, transparent);
+    }
+
+    .grafico__alvo:focus-visible {
+        stroke: var(--color-accent);
+        stroke-width: 2px;
+    }
+
+    .grafico-colunas {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .grafico-colunas__eixo {
+        width: 1.75rem;
+    }
+
+    .grafico-colunas__area {
+        position: relative;
+        min-width: 0;
+    }
+
+    /* Dica: valor em destaque, mês em segundo plano; posicionada acima da coluna. */
+    .grafico__dica {
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 12px;
+        border: 1px solid var(--color-line);
+        border-radius: 10px;
+        background: var(--color-surface);
+        box-shadow: var(--shadow-card);
+        pointer-events: none;
+        transform: translate(-50%, calc(-100% - 26px));
+        white-space: nowrap;
+    }
+
+    .grafico__dica--inicio {
+        transform: translate(-24px, calc(-100% - 26px));
+    }
+
+    .grafico__dica--fim {
+        transform: translate(calc(-100% + 24px), calc(-100% - 26px));
+    }
+
+    .grafico__dica strong {
+        font-size: 14px;
+    }
+
+    .grafico__dica span {
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .grafico__tabela {
+        margin-top: 12px;
+        font-size: 13px;
+    }
+
+    .grafico__tabela summary {
+        width: fit-content;
+        color: var(--color-accent);
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .grafico__tabela table {
+        width: 100%;
+        margin-top: 10px;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .grafico__tabela th,
+    .grafico__tabela td {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--color-line-soft);
+        text-align: left;
+    }
+
+    .grafico__tabela thead th {
+        color: var(--color-muted);
+        font-size: 12px;
+    }
+
+    .grafico__tabela tbody th {
+        font-weight: 400;
+    }
+
+    .grafico__tabela td,
+    .grafico__tabela thead th:last-child {
+        text-align: right;
+    }
+
+    .grafico-barras {
+        display: grid;
+        gap: 14px;
+    }
+
+    .grafico-barras li {
+        display: grid;
+        gap: 4px;
+        font-size: 14px;
+    }
+
+    .grafico-barras li:hover .grafico__coluna {
+        fill: var(--color-grafico-serie-ativa);
+    }
+}
