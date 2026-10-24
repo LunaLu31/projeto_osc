@@ -10,7 +10,7 @@ sem precisar criar conta; a UOSCC administra a rede.
 
 | Camada | Tecnologias |
 |---|---|
-| Back-end | PHP 8.2+, Laravel 12, Eloquent, Sanctum (API), Scramble (OpenAPI) |
+| Back-end | PHP 8.2+, Laravel 12, Eloquent, JWT (firebase/php-jwt, site e API), Scramble (OpenAPI) |
 | Front-end | React 19 + TypeScript via Inertia.js (SSR), React Compiler, Ziggy (rotas tipadas), Tailwind CSS 4 + design system próprio, tema claro/escuro |
 | Banco | MySQL 8 (`database/schema/uoscc_redecam.sql` + migrations equivalentes) |
 | Build e qualidade | Vite 7, ESLint, Prettier, Vitest + Testing Library + axe-core, PHPUnit, Laravel Pint |
@@ -44,7 +44,7 @@ resources/css/    tokens (app.css), temas (theme.css) e componentes do design sy
 
 - **Tipos gerados**: `types/api.d.ts` vem do OpenAPI (`npm run tipos:api`); os tipos do domínio derivam
   dele. Uma mudança num Resource do Laravel quebra a checagem de tipos onde for preciso ajustar.
-- **Estados de requisição**: o Inertia é o cliente HTTP (CSRF e sessão do Laravel). Erros de validação
+- **Estados de requisição**: o Inertia é o cliente HTTP (login por JWT em cookie e CSRF da sessão). Erros de validação
   aparecem em cada campo; recargas da página mostram *skeletons*; falhas de rede ou respostas
   inesperadas exibem um aviso global (`AvisoConexao`), sem expor erros técnicos.
 - **Responsivo e mobile first**: a estrutura das páginas usa utilitários do Tailwind (`sm:`, `md:`…);
@@ -57,8 +57,15 @@ resources/css/    tokens (app.css), temas (theme.css) e componentes do design sy
   paginadas no servidor.
 
 - **Site**: rotas e autorização ficam no Laravel; cada controller entrega uma página React com props
-  tipadas. Navegação e formulários sem recarregar a página, com sessão e CSRF do Laravel.
-- **API REST** (`/api/v1`): tokens Bearer (Sanctum) com escopo por perfil (`osc`/`admin`).
+  tipadas. Navegação e formulários sem recarregar a página, com CSRF do Laravel.
+- **Login por JWT** (`app/Auth`, `config/jwt.php`): token HS256 assinado, emitido por perfil.
+  - Site: em cookie `HttpOnly` (inacessível ao JavaScript). Com **"Manter conectado"** vale 7 dias e
+    é renovado enquanto a pessoa usa o sistema, então só expira após 7 dias sem acesso; sem a opção,
+    termina ao fechar o navegador (máx. 2 h).
+  - API: no cabeçalho `Authorization: Bearer`, válido por 7 dias (`POST …/tokens/renovar` troca por um novo).
+  - Rotas protegidas: `auth:osc`/`auth:admin` no site e `jwt:osc`/`jwt:admin` na API (401 sem token
+    válido, 403 com token de outro perfil). Sair revoga o token; trocar a senha invalida todos.
+- **API REST** (`/api/v1`): JWT com escopo por perfil (`osc`/`admin`).
   Documentação Swagger em **`/docs/api`** (OpenAPI 3.1 gerado do código; cópia em `docs/openapi.json`).
 - **Perfis**: apoiador (sem login), OSC (guard `osc`) e administrador (guard `admin`).
 - **SEO**: cada página define título, descrição e tags Open Graph (`<Head>` do Inertia).
@@ -93,7 +100,8 @@ php artisan inertia:start-ssr   # servidor Node de SSR (porta 13714); use um sup
 
 Sem o servidor de SSR o site continua funcionando, renderizado no navegador. Para testar localmente
 com SSR: `composer dev:ssr`.
-Dados fictícios: `php artisan db:seed --class=DemonstracaoSeeder` (OSCs com senha `senha-segura`).
+Dados fictícios: `php artisan migrate:fresh --seed --seeder=DemonstracaoSeeder` (apaga o banco e cria 2 admins,
+`admin@uoscc.org` com 10 OSCs e `coordenacao@uoscc.org` com 15, ambos com senha `admin123`; OSCs com senha `senha-segura`).
 
 ## Qualidade
 
@@ -110,7 +118,8 @@ php artisan scramble:export && npm run tipos:api   # atualiza o OpenAPI e os tip
 
 CSP com nonce e sem estilos/scripts inline, HSTS, `X-Frame-Options`, senhas com bcrypt e política
 mínima, limite de tentativas de login (e-mail + IP), anti-spam no formulário público (honeypot,
-armadilha de tempo e Cloudflare Turnstile opcional), tokens da API com expiração e contatos de
+armadilha de tempo e Cloudflare Turnstile opcional), login por JWT com expiração, revogação e cookie
+`HttpOnly`/`SameSite=Lax`, e contatos de
 apoiadores visíveis apenas para a OSC responsável (LGPD).
 
 Antes do deploy: `php artisan seguranca:verificar`.

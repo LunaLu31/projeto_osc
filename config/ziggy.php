@@ -5,5 +5,5 @@
 | As rotas da API e da documentação não são necessárias no site.
 */
 return [
-    'except' => ['api.*', 'docs.*', 'scramble.*', 'sanctum.*', 'storage.*', 'inertia.*', '_inertia.*'],
+    'except' => ['api.*', 'docs.*', 'scramble.*', 'storage.*', 'inertia.*', '_inertia.*'],
 ];

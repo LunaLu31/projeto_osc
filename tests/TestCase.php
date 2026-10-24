@@ -2,6 +2,8 @@
 
 namespace Tests;
 
+use App\Auth\TokensJwt;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Testing\TestResponse;
 
@@ -13,6 +15,12 @@ abstract class TestCase extends BaseTestCase
 
         // As views usam @vite; os testes não dependem de `npm run build`.
         $this->withoutVite();
+    }
+
+    /** JWT de login emitido direto pelo serviço (perfil "osc" ou "admin"), válido por 7 dias. */
+    protected function tokenJwt(Authenticatable $usuario, string $perfil): string
+    {
+        return $this->app->make(TokensJwt::class)->emitir($usuario, $perfil, lembrar: true)->token;
     }
 
     /**

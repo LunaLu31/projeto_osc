@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Login por e-mail e senha de OSCs e administradores (RF01), com bloqueio
  * temporário após tentativas seguidas para o mesmo e-mail e IP.
- * Usado pelo site (sessão) e pela API (token Bearer).
+ * Usado pelo site (JWT em cookie) e pela API (JWT no cabeçalho Authorization).
  */
 class LoginRequest extends FormRequest
 {
@@ -23,24 +23,26 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-            /** Nome do dispositivo/cliente que receberá o token (somente API). */
-            'dispositivo' => ['nullable', 'string', 'max:100'],
+            /** "Manter conectado" (somente site): o login vale por 7 dias mesmo fechando o navegador. */
+            'lembrar' => ['nullable', 'boolean'],
         ];
     }
 
     /**
-     * Login do site: valida as credenciais e inicia a sessão do guard.
+     * Login do site: valida as credenciais e emite o JWT do guard (cookie HttpOnly).
      *
      * @throws ValidationException
      */
     public function autenticar(string $guard): void
     {
-        Auth::guard($guard)->login($this->validarCredenciais($guard));
+        Auth::guard($guard)->login($this->validarCredenciais($guard), $this->boolean('lembrar'));
+
+        // A sessão continua guardando o token CSRF e as mensagens; um novo ID evita fixação de sessão.
         $this->session()->regenerate();
     }
 
     /**
-     * Confere e-mail e senha no provedor do guard, sem criar sessão (usado pela API).
+     * Confere e-mail e senha no provedor do guard, sem emitir token.
      *
      * @throws ValidationException
      */

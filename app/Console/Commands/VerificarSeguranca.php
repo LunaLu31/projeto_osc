@@ -27,7 +27,7 @@ class VerificarSeguranca extends Command
             ['APP_DEBUG=false (sem erros crus para o usuário – RNF12)', ! config('app.debug'), true],
             ['APP_KEY definida', filled(config('app.key')), true],
             ['APP_URL usa HTTPS', str_starts_with((string) config('app.url'), 'https://'), true],
-            ['SESSION_SECURE_COOKIE=true (cookie só via HTTPS)', (bool) config('session.secure'), true],
+            ['SESSION_SECURE_COOKIE=true (cookies de sessão e de login só via HTTPS)', (bool) config('session.secure'), true],
             ['SESSION_ENCRYPT=true (sessão criptografada)', (bool) config('session.encrypt'), false],
             ['SESSION_HTTP_ONLY=true (cookie inacessível ao JavaScript)', (bool) config('session.http_only'), true],
             ['Usuário do banco dedicado (não root)', ! in_array(strtolower($dbUsuario), ['root', 'admin', ''], true), true],
@@ -37,7 +37,8 @@ class VerificarSeguranca extends Command
             ['Assets compilados (npm run build)', is_file(public_path('build/manifest.json')), true],
             ['Servidor do Vite desligado (sem arquivo public/hot)', ! is_file(public_path('hot')), true],
             ['CORS da API restrito a origens conhecidas (CORS_ALLOWED_ORIGINS sem *)', ! in_array('*', (array) config('cors.allowed_origins'), true), false],
-            ['Tokens da API com expiração (SANCTUM_TOKEN_EXPIRATION)', (int) config('sanctum.expiration') > 0, true],
+            ['JWT_SECRET com 32+ caracteres (chave própria dos tokens de login)', mb_strlen((string) config('jwt.segredo')) >= 32, false],
+            ['Tokens de login com expiração (JWT_TTL)', (int) config('jwt.validade_minutos') > 0, true],
             ['Documentação da API não pública (API_DOCS_PUBLIC=false)', ! config('seguranca.docs_api_publica'), false],
         ];
 

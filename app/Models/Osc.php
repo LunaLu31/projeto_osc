@@ -8,15 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Usuário autenticável pelo guard `osc` (config/auth.php)
- * e por tokens Bearer da API (Laravel Sanctum).
+ * e pelo JWT da API (guard `api_osc`).
  */
 class Osc extends Authenticatable
 {
-    use HasApiTokens, HasFactory, TemIniciais;
+    use HasFactory, TemIniciais;
 
     /** Coluna da senha hasheada com password_hash()/bcrypt (RNF05). */
     protected $authPasswordName = 'senha_hash';

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Auth\JwtGuard;
+use App\Auth\TokensJwt;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Operation;
@@ -13,6 +15,7 @@ use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(TokensJwt::class);
+
         // A documentação usa Swagger UI servido pelo próprio projeto (rotas em routes/web.php).
         Scramble::ignoreDefaultRoutes();
     }
@@ -40,8 +45,28 @@ class AppServiceProvider extends ServiceProvider
         // Política de senha de OSCs e administradores (RNF05).
         Password::defaults(fn () => Password::min(8)->letters()->numbers());
 
+        $this->configurarLoginJwt();
         $this->configurarLimites();
         $this->configurarDocumentacaoApi();
+    }
+
+    /** Driver "jwt" dos guards de config/auth.php (site em cookie, API em Bearer). */
+    private function configurarLoginJwt(): void
+    {
+        Auth::extend('jwt', function ($app, string $nome, array $config) {
+            $guard = new JwtGuard(
+                $app->make(TokensJwt::class),
+                Auth::createUserProvider($config['provider']),
+                $app['request'],
+                $config['perfil'],
+                $config['origem'],
+            );
+
+            // A cada nova requisição o guard volta a ler o token dela.
+            $app->refresh('request', $guard, 'setRequest');
+
+            return $guard;
+        });
     }
 
     private function configurarLimites(): void
@@ -50,13 +75,11 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('manifestacoes', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 
         // API: 60 requisições por minuto por usuário do token (OSC ou admin) ou, sem token, por IP.
-        // Usa o guard "sanctum" porque este limite roda antes do middleware auth:sanctum.
+        // Lê o token direto porque este limite roda antes do middleware jwt:{perfil}.
         RateLimiter::for('api', function (Request $request) {
-            $usuario = $request->user('sanctum');
+            $claims = $this->app->make(TokensJwt::class)->ler($request->bearerToken());
 
-            return Limit::perMinute(60)->by(
-                $usuario ? $usuario->getMorphClass().':'.$usuario->getAuthIdentifier() : 'ip:'.$request->ip()
-            );
+            return Limit::perMinute(60)->by($claims ? "{$claims->perfil}:{$claims->sub}" : 'ip:'.$request->ip());
         });
     }
 
@@ -65,12 +88,13 @@ class AppServiceProvider extends ServiceProvider
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {
                 $openApi->secure(
-                    SecurityScheme::http('bearer')->setDescription(
-                        'Token obtido em `POST /api/v1/osc/tokens` ou `POST /api/v1/admin/tokens`.'
+                    SecurityScheme::http('bearer', 'JWT')->setDescription(
+                        'JWT obtido em `POST /api/v1/osc/tokens` ou `POST /api/v1/admin/tokens`, válido por 7 dias '
+                        .'(renove em `POST /api/v1/{perfil}/tokens/renovar`).'
                     )
                 );
             })
-            // Respostas que vêm de middlewares (abilities do token e limite de requisições)
+            // Respostas que vêm de middlewares (jwt:{perfil} e limite de requisições)
             // e por isso não são inferidas a partir do código dos controllers.
             ->withOperationTransformers(function (Operation $operation) {
                 $codigos = collect($operation->responses)
@@ -78,6 +102,11 @@ class AppServiceProvider extends ServiceProvider
                     ->filter();
 
                 $protegida = $operation->security !== [];
+
+                if ($protegida && ! $codigos->contains(401)) {
+                    $operation->addResponse($this->respostaDeErro(401,
+                        'Token ausente, inválido, expirado ou revogado (saída ou troca de senha).'));
+                }
 
                 if ($protegida && ! $codigos->contains(403)) {
                     $operation->addResponse($this->respostaDeErro(403,

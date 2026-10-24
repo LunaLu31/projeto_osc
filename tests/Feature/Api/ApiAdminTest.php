@@ -7,7 +7,6 @@ use App\Models\Demanda;
 use App\Models\Osc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ApiAdminTest extends TestCase
@@ -21,7 +20,7 @@ class ApiAdminTest extends TestCase
         parent::setUp();
 
         $this->admin = Adm::factory()->create();
-        Sanctum::actingAs($this->admin, ['admin']);
+        $this->actingAs($this->admin, 'api_admin');
     }
 
     public function test_osc_crud_with_every_http_method(): void
@@ -69,14 +68,15 @@ class ApiAdminTest extends TestCase
     public function test_resetting_an_osc_password_revokes_its_tokens(): void
     {
         $osc = Osc::factory()->create();
-        $osc->createToken('celular', ['osc']);
+        $tokenDaOsc = $this->tokenJwt($osc, 'osc');
 
         $this->patchJson("/api/v1/admin/oscs/{$osc->id_osc}", [
             'password' => 'novaSenha123',
             'password_confirmation' => 'novaSenha123',
         ])->assertOk();
 
-        $this->assertSame(0, $osc->tokens()->count());
+        $this->app['auth']->forgetGuards();
+        $this->withToken($tokenDaOsc)->getJson('/api/v1/osc/perfil')->assertUnauthorized();
     }
 
     public function test_moderates_any_demand(): void

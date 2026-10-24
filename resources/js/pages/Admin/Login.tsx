@@ -3,11 +3,12 @@ import type { FormEvent } from 'react';
 import { route } from 'ziggy-js';
 import Campo from '@/components/Campo';
 import Icone from '@/components/Icone';
+import ManterConectado from '@/components/ManterConectado';
 import LayoutAutenticacao from '@/layouts/LayoutAutenticacao';
 
 /** Login do administrador (RF01). */
 export default function Login() {
-    const { data, setData, post, errors, processing, reset } = useForm({ email: '', password: '' });
+    const { data, setData, post, errors, processing, reset } = useForm({ email: '', password: '', lembrar: false });
 
     const entrar = (evento: FormEvent) => {
         evento.preventDefault();
@@ -40,6 +41,7 @@ export default function Login() {
                         required
                     />
                 </Campo>
+                <ManterConectado marcado={data.lembrar} alterar={(marcado) => setData('lembrar', marcado)} />
                 <button type="submit" className="button button--primary button--block mt-6" disabled={processing}>
                     {processing ? 'Entrando…' : 'Entrar no portal'} <Icone nome="arrow" />
                 </button>

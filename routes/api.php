@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 /*
 | API REST v1 – prefixo /api/v1 (documentação em /docs/api)
-| Autenticação: token Bearer do Laravel Sanctum, com "ability" igual ao perfil (osc/admin).
+| Autenticação: JWT no cabeçalho Authorization: Bearer, emitido por perfil (osc/admin).
+| Rotas protegidas com jwt:{perfil} (App\Http\Middleware\AutenticarApiJwt).
 */
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
@@ -24,7 +25,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('osc')->name('osc.')->group(function () {
         Route::post('/tokens', [Osc\TokenController::class, 'store'])->name('tokens.store');
 
-        Route::middleware(['auth:sanctum', 'abilities:osc'])->group(function () {
+        Route::middleware('jwt:osc')->group(function () {
+            Route::post('/tokens/renovar', [Osc\TokenController::class, 'renovar'])->name('tokens.renovar');
             Route::delete('/tokens/atual', [Osc\TokenController::class, 'destroy'])->name('tokens.destroy');
             Route::get('/perfil', [Osc\PerfilController::class, 'show'])->name('perfil.show');
             Route::put('/perfil/senha', [Osc\PerfilController::class, 'senha'])->name('perfil.senha');
@@ -44,7 +46,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tokens', [Admin\TokenController::class, 'store'])->name('tokens.store');
 
-        Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
+        Route::middleware('jwt:admin')->group(function () {
+            Route::post('/tokens/renovar', [Admin\TokenController::class, 'renovar'])->name('tokens.renovar');
             Route::delete('/tokens/atual', [Admin\TokenController::class, 'destroy'])->name('tokens.destroy');
             Route::get('/painel', Admin\PainelController::class)->name('painel');
 

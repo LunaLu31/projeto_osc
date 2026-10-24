@@ -8,7 +8,6 @@ use App\Models\Osc;
 use App\Services\MetricasOsc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ApiOscTest extends TestCase
@@ -22,7 +21,7 @@ class ApiOscTest extends TestCase
         parent::setUp();
 
         $this->osc = Osc::factory()->create();
-        Sanctum::actingAs($this->osc, ['osc']);
+        $this->actingAs($this->osc, 'api_osc');
     }
 
     public function test_full_crud_with_every_http_method(): void
@@ -132,22 +131,31 @@ class ApiOscTest extends TestCase
             ->assertJsonPath('data.contatos_por_mes.5', ['mes' => now()->format('Y-m'), 'total' => 1]);
     }
 
-    public function test_change_password_revokes_other_tokens(): void
+    public function test_change_password_invalidates_every_token_and_returns_a_new_one(): void
     {
-        $outro = $this->osc->createToken('celular-antigo', ['osc']);
-        $atual = $this->osc->createToken('este', ['osc']);
+        $outro = $this->tokenJwt($this->osc, 'osc');
+        $atual = $this->tokenJwt($this->osc, 'osc');
         $this->app['auth']->forgetGuards();
 
-        $this->withToken($atual->plainTextToken)
+        $novo = $this->withToken($atual)
             ->putJson('/api/v1/osc/perfil/senha', [
                 'senha_atual' => 'senha-segura',
                 'password' => 'novaSenha2026',
                 'password_confirmation' => 'novaSenha2026',
-            ])->assertNoContent();
+            ])->assertOk()
+            ->assertJsonPath('tipo', 'Bearer')
+            ->json('token');
 
         $this->assertTrue(Hash::check('novaSenha2026', $this->osc->fresh()->senha_hash));
-        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $outro->accessToken->id]);
-        $this->assertDatabaseHas('personal_access_tokens', ['id' => $atual->accessToken->id]);
+
+        // Os tokens emitidos com a senha antiga caem (inclusive o usado na troca); o novo funciona.
+        foreach ([$outro, $atual] as $antigo) {
+            $this->app['auth']->forgetGuards();
+            $this->withToken($antigo)->getJson('/api/v1/osc/perfil')->assertUnauthorized();
+        }
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($novo)->getJson('/api/v1/osc/perfil')->assertOk();
     }
 
     private function demanda(array $sobrescrever = []): array

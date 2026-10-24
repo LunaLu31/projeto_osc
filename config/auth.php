@@ -34,21 +34,40 @@ return [
     | users are actually retrieved out of your database or other storage
     | system used by the application. Typically, Eloquent is utilized.
     |
-    | Supported: "session"
+    | Supported: "session", "jwt" (app/Auth/JwtGuard.php, registrado no AppServiceProvider)
     |
     */
 
     'guards' => [
-        // Área da OSC (RF01)
+        // Site: JWT em cookie HttpOnly (config/jwt.php). Área da OSC (RF01).
         'osc' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'oscs',
+            'perfil' => 'osc',
+            'origem' => 'cookie',
         ],
 
-        // Portal administrativo (RF01)
+        // Site: portal administrativo (RF01).
         'admin' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'adms',
+            'perfil' => 'admin',
+            'origem' => 'cookie',
+        ],
+
+        // API REST: o mesmo JWT, no cabeçalho Authorization: Bearer (middleware jwt:osc / jwt:admin).
+        'api_osc' => [
+            'driver' => 'jwt',
+            'provider' => 'oscs',
+            'perfil' => 'osc',
+            'origem' => 'bearer',
+        ],
+
+        'api_admin' => [
+            'driver' => 'jwt',
+            'provider' => 'adms',
+            'perfil' => 'admin',
+            'origem' => 'bearer',
         ],
     ],
 

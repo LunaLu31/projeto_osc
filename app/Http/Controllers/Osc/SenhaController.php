@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Osc;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -27,10 +28,14 @@ class SenhaController extends Controller
             'password' => ['required', 'confirmed', 'different:senha_atual', Password::defaults()],
         ]);
 
-        $osc = $request->user('osc');
+        $guard = Auth::guard('osc');
+        $osc = $guard->user();
+        $lembrar = (bool) $guard->claims()?->lembrar;
         $osc->update(['senha_hash' => Hash::make($dados['password'])]);
-        // Tokens da API emitidos com a senha antiga deixam de valer.
-        $osc->tokens()->delete();
+
+        // A senha nova invalida todos os JWT já emitidos (site e API, em qualquer dispositivo);
+        // este navegador recebe um token novo para continuar conectado.
+        $guard->login($osc, $lembrar);
         $request->session()->regenerate();
 
         return redirect()->route('osc.painel')->with('status', 'Senha alterada com sucesso.');

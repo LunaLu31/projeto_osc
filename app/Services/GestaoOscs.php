@@ -31,7 +31,8 @@ class GestaoOscs
     }
 
     /**
-     * Atualiza os dados da OSC. Uma nova senha revoga os tokens da API já emitidos.
+     * Atualiza os dados da OSC. Uma nova senha encerra os logins já feitos: os JWT
+     * carregam uma impressão da senha e deixam de valer (veja App\Auth\TokensJwt).
      *
      * @param  array<string, mixed>  $dados
      */
@@ -39,7 +40,6 @@ class GestaoOscs
     {
         if ($novaSenha) {
             $dados['senha_hash'] = Hash::make($novaSenha);
-            $osc->tokens()->delete();
         }
 
         $osc->update($dados);
@@ -49,7 +49,7 @@ class GestaoOscs
 
     public function excluir(Osc $osc): void
     {
-        $osc->tokens()->delete();
+        // Os JWT da OSC deixam de valer junto com o cadastro (o dono do token não existe mais).
         $osc->delete();
     }
 }

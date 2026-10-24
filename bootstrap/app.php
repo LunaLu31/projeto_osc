@@ -1,8 +1,11 @@
 <?php
 
+use App\Auth\JwtGuard;
+use App\Http\Middleware\AutenticarApiJwt;
 use App\Http\Middleware\CabecalhosSeguranca;
 use App\Http\Middleware\ForcarRespostaJson;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RenovarLoginJwt;
 use App\Support\Tema;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -12,8 +15,6 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Laravel\Sanctum\Http\Middleware\CheckAbilities;
-use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -29,21 +30,20 @@ return Application::configure(basePath: dirname(__DIR__))
         // CSP, anti-clickjacking, nosniff e HSTS em todas as respostas.
         $middleware->append(CabecalhosSeguranca::class);
 
-        // Preferência de tema: escrita pelo JavaScript e sem dado sensível (não criptografada).
-        $middleware->encryptCookies(except: [Tema::COOKIE]);
+        // Não criptografados: o tema (escrito pelo JavaScript) e os cookies de login, que já são
+        // JWT assinados (adulterar invalida a assinatura) e HttpOnly; assim o cookie é o próprio JWT.
+        $middleware->encryptCookies(except: [Tema::COOKIE, ...array_values(JwtGuard::COOKIES)]);
 
-        // Site: páginas React via Inertia (props compartilhadas em HandleInertiaRequests).
-        $middleware->web(append: [HandleInertiaRequests::class]);
+        // Site: páginas React via Inertia (props compartilhadas em HandleInertiaRequests)
+        // e renovação do login de quem está usando o sistema.
+        $middleware->web(append: [HandleInertiaRequests::class, RenovarLoginJwt::class]);
 
         // API: sempre JSON e limite de requisições (RateLimiter "api" no AppServiceProvider).
         $middleware->api(prepend: [ForcarRespostaJson::class]);
         $middleware->throttleApi();
 
-        // Escopos dos tokens do Sanctum: "osc" ou "admin".
-        $middleware->alias([
-            'abilities' => CheckAbilities::class,
-            'ability' => CheckForAnyAbility::class,
-        ]);
+        // Rotas protegidas da API: jwt:osc ou jwt:admin (401 sem token válido, 403 com token de outro perfil).
+        $middleware->alias(['jwt' => AutenticarApiJwt::class]);
 
         $areaAdmin = fn (Request $request) => $request->is('admin', 'admin/*');
 

@@ -30,6 +30,7 @@ class AuthController extends Controller
         return redirect()->intended(route('admin.painel'));
     }
 
+    /** Revoga o JWT do login (e apaga o cookie); a sessão guarda só CSRF e mensagens. */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('admin')->logout();

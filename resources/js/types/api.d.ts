@@ -119,10 +119,31 @@ export interface paths {
         put?: never;
         /**
          * Entrar (gerar token)
-         * @description Troca e-mail e senha da OSC por um token Bearer válido por 7 dias (RF01).
-         *     Após 5 tentativas erradas para o mesmo e-mail e IP, o acesso é bloqueado por 1 minuto.
+         * @description Troca e-mail e senha da OSC por um JWT válido por 7 dias (RF01), a ser enviado no cabeçalho
+         *     `Authorization: Bearer {token}`. Após 5 tentativas erradas para o mesmo e-mail e IP, o acesso
+         *     é bloqueado por 1 minuto.
          */
         post: operations["v1.osc.tokens.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/osc/tokens/renovar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Renovar token
+         * @description Troca o token desta requisição por um novo, válido por mais 7 dias. O anterior é revogado.
+         */
+        post: operations["v1.osc.tokens.renovar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -176,7 +197,8 @@ export interface paths {
         get?: never;
         /**
          * Alterar senha
-         * @description Troca a senha inicial gerada pelo administrador. Todos os outros tokens da OSC são revogados.
+         * @description Troca a senha inicial gerada pelo administrador. Todos os tokens da OSC deixam de valer,
+         *     inclusive o desta requisição: a resposta traz um token novo para continuar conectado.
          */
         put: operations["v1.osc.perfil.senha"];
         post?: never;
@@ -311,9 +333,30 @@ export interface paths {
         put?: never;
         /**
          * Entrar (gerar token)
-         * @description Troca e-mail e senha do administrador por um token Bearer válido por 7 dias (RF01).
+         * @description Troca e-mail e senha do administrador por um JWT válido por 7 dias (RF01), a ser enviado no
+         *     cabeçalho `Authorization: Bearer {token}`.
          */
         post: operations["v1.admin.tokens.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tokens/renovar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Renovar token
+         * @description Troca o token desta requisição por um novo, válido por mais 7 dias. O anterior é revogado.
+         */
+        post: operations["v1.admin.tokens.renovar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -543,14 +586,14 @@ export interface components {
          * LoginRequest
          * @description Login por e-mail e senha de OSCs e administradores (RF01), com bloqueio
          *     temporário após tentativas seguidas para o mesmo e-mail e IP.
-         *     Usado pelo site (sessão) e pela API (token Bearer).
+         *     Usado pelo site (JWT em cookie) e pela API (JWT no cabeçalho Authorization).
          */
         LoginRequest: {
             /** Format: email */
             email: string;
             password: string;
-            /** @description Nome do dispositivo/cliente que receberá o token (somente API). */
-            dispositivo?: string | null;
+            /** @description "Manter conectado" (somente site): o login vale por 7 dias mesmo fechando o navegador. */
+            lembrar?: boolean | null;
         };
         /**
          * OscParcialRequest
@@ -624,18 +667,6 @@ export interface components {
         };
         /** @description Not found */
         ModelNotFoundException: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": {
-                    /** @description Error overview. */
-                    message: string;
-                };
-            };
-        };
-        /** @description Unauthenticated */
-        AuthenticationException: {
             headers: {
                 [name: string]: unknown;
             };
@@ -939,6 +970,63 @@ export interface operations {
             };
         };
     };
+    "v1.osc.tokens.renovar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        token: string;
+                        /** @constant */
+                        tipo: "Bearer";
+                        expira_em: string;
+                    };
+                };
+            };
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
+            /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
+            /** @description Limite de requisições excedido. Aguarde o tempo indicado no cabeçalho `Retry-After`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
     "v1.osc.tokens.destroy": {
         parameters: {
             query?: never;
@@ -955,7 +1043,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1000,7 +1098,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1042,14 +1150,30 @@ export interface operations {
             };
         };
         responses: {
-            /** @description No content */
-            204: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        token: string;
+                        /** @constant */
+                        tipo: "Bearer";
+                        expira_em: string;
+                    };
+                };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1109,7 +1233,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1183,7 +1317,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1233,7 +1377,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1282,7 +1436,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1335,7 +1499,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1381,7 +1555,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1434,7 +1618,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1491,7 +1685,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1569,7 +1773,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1636,6 +1850,63 @@ export interface operations {
             };
         };
     };
+    "v1.admin.tokens.renovar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        token: string;
+                        /** @constant */
+                        tipo: "Bearer";
+                        expira_em: string;
+                    };
+                };
+            };
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
+            /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
+            /** @description Limite de requisições excedido. Aguarde o tempo indicado no cabeçalho `Retry-After`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
+        };
+    };
     "v1.admin.tokens.destroy": {
         parameters: {
             query?: never;
@@ -1652,7 +1923,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1706,7 +1987,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1781,7 +2072,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1832,7 +2133,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1881,7 +2192,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1934,7 +2255,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -1980,7 +2311,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -2033,7 +2374,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -2113,7 +2464,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -2162,7 +2523,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -2207,7 +2578,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
@@ -2263,7 +2644,17 @@ export interface operations {
                     };
                 };
             };
-            401: components["responses"]["AuthenticationException"];
+            /** @description Token ausente, inválido, expirado ou revogado (saída ou troca de senha). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
+            };
             /** @description Token de outro perfil (ex.: token de OSC em rota de administração). */
             403: {
                 headers: {
