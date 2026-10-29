@@ -128,7 +128,7 @@ function Hero({ totalOscs, iniciais }: { totalOscs: number; iniciais: string[] }
                     Descubra necessidades reais de organizações sociais de Camaçari e contribua com doações, tempo ou
                     conhecimento. Sem burocracia.
                 </p>
-                <div className="hero__actions flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <div className="hero__actions flex flex-col gap-3 sm:flex-row">
                     <a href="#demandas" className="button button--primary">
                         Encontrar uma causa <Icone nome="arrow" />
                     </a>

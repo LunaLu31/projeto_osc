@@ -11,19 +11,22 @@
             linear-gradient(118deg, var(--color-hero-1) 0%, var(--color-hero-2) 54%, var(--color-hero-3) 100%);
     }
 
-    /* Conteúdo centralizado: o hero não tem mais imagem ao lado. */
+    /*
+     * Bloco centralizado na página (o hero não tem imagem ao lado) e texto justificado:
+     * título, parágrafo, selo, botões e OSCs conectadas alinham nas duas margens do bloco.
+     */
     .hero__content {
         position: relative;
         z-index: 1;
         max-width: 780px;
         margin-inline: auto;
-        text-align: center;
+        text-align: justify;
     }
 
     .hero__eyebrow {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         gap: 12px;
         margin-bottom: 28px;
         color: var(--color-accent);
@@ -46,8 +49,6 @@
     }
 
     .hero h1 {
-        max-width: 700px;
-        margin-inline: auto;
         margin-bottom: 24px;
         font-size: clamp(40px, 5.2vw, 72px);
         font-weight: 700;
@@ -74,15 +75,17 @@
         transform: rotate(-1deg);
     }
 
+    /* Hifenização (lang="pt-BR") evita espaços largos entre as palavras do texto justificado. */
     .hero__content > p {
-        max-width: 560px;
-        margin-inline: auto;
         margin-bottom: 31px;
         color: var(--color-muted);
+        hyphens: auto;
         line-height: 1.72;
     }
 
+    /* Os botões dividem a largura do bloco, de margem a margem. */
     .hero__actions .button {
+        flex: 1 1 0;
         min-height: 52px;
         padding: 0 24px;
     }
@@ -90,7 +93,6 @@
     .hero__trust {
         display: flex;
         align-items: center;
-        justify-content: center;
         gap: 14px;
         margin-top: 34px;
         color: var(--color-muted);
