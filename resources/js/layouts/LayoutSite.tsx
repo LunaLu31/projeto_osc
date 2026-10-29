@@ -110,8 +110,8 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
             <Head title={titulo}>
                 <meta head-key="description" name="description" content={descricao} />
                 <meta head-key="og:type" property="og:type" content="website" />
-                <meta head-key="og:site_name" property="og:site_name" content="Redcam" />
-                <meta head-key="og:title" property="og:title" content={titulo ?? 'Redcam | Rede que transforma'} />
+                <meta head-key="og:site_name" property="og:site_name" content="CONECTA_OSC" />
+                <meta head-key="og:title" property="og:title" content={titulo ?? 'CONECTA_OSC | Rede que transforma'} />
                 <meta head-key="og:description" property="og:description" content={descricao} />
             </Head>
             <a href="#conteudo" className="skip-link">
@@ -184,12 +184,12 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
                         <Link href={route('osc.login')}>Área da OSC</Link>
                     </div>
                     <div className="footer-signature">
-                        <strong>UOSCC / Redcam</strong>
+                        <strong>OSC / CONECTA_OSC</strong>
                         <span>Um projeto pela comunidade de Camaçari.</span>
                     </div>
                 </div>
                 <div className="footer-bottom flex flex-col gap-1.5 sm:flex-row sm:justify-between">
-                    <span>© {new Date().getFullYear()} Redcam. Todos os direitos reservados.</span>
+                    <span>© {new Date().getFullYear()} CONECTA_OSC. Todos os direitos reservados.</span>
                     <span>MVP · Versão A</span>
                 </div>
             </footer>

@@ -1,5 +1,5 @@
 /*
- * Swagger UI da API Redcam, empacotado pelo Vite (sem CDN, compatível com a CSP).
+ * Swagger UI da API CONECTA_OSC, empacotado pelo Vite (sem CDN, compatível com a CSP).
  * A especificação OpenAPI é gerada pelo Scramble a partir do código.
  */
 // Bundle de navegador (o index do pacote importa o módulo `path` do Node).

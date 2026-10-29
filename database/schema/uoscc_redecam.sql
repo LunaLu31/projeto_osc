@@ -1,5 +1,5 @@
 -- ============================================================
--- BANCO DE DADOS: UOSCC / REDCAM
+-- BANCO DE DADOS: OSC / CONECTA_OSC
 -- Descrição: Sistema de gestão de demandas de OSCs
 -- Versão: MVP (Versão A)
 --
@@ -113,7 +113,7 @@ CREATE TABLE manifestacoes_interesses (
 -- Hash gerado com password_hash('admin123', PASSWORD_BCRYPT).
 -- ============================================================
 INSERT INTO adms (nome, email, senha_hash) VALUES
-('Administrador UOSCC', 'admin@uoscc.org', '$2y$12$ExfvCJtDF0aadF1qIhvBNe/wfeSnt5tIpHAw2XnzMZPC4FU3h5UaO');
+('Administrador CONECTA_OSC', 'admin@uoscc.org', '$2y$12$ExfvCJtDF0aadF1qIhvBNe/wfeSnt5tIpHAw2XnzMZPC4FU3h5UaO');
 
 -- ============================================================
 -- FIM DO SCRIPT

@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import marca from '../../images/redcam-marca.png';
+import marca from '../../images/conecta-osc-marca.png';
 
 const mensagens: Record<number, [string, string]> = {
     403: ['Acesso negado', 'Você não tem permissão para acessar esta página.'],
@@ -27,7 +27,7 @@ export default function Erro({ status }: { status: number }) {
                             <img src={marca} alt="" width={42} height={42} />
                         </span>
                         <span className="logo__copy">
-                            <strong>Redcam</strong>
+                            <strong>CONECTA_OSC</strong>
                             <small>Rede que transforma</small>
                         </span>
                     </a>

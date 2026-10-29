@@ -26,7 +26,10 @@ export default function Senha() {
                     <div className="form-card__header">
                         <span className="eyebrow">Segurança</span>
                         <h1>Alterar senha</h1>
-                        <p>Troque a senha inicial recebida da equipe UOSCC por uma que só a sua organização conheça.</p>
+                        <p>
+                            Troque a senha inicial recebida da equipe CONECTA_OSC por uma que só a sua organização
+                            conheça.
+                        </p>
                     </div>
 
                     <Campo rotulo="Senha atual" erro={errors.senha_atual}>

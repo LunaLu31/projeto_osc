@@ -48,7 +48,7 @@ export default function Login() {
             </form>
 
             <p className="auth-card__footer field__hint">
-                Esqueceu a senha? Fale com a equipe UOSCC para gerar uma nova.
+                Esqueceu a senha? Fale com a equipe CONECTA_OSC para gerar uma nova.
             </p>
             <div className="auth-card__footer">
                 <Link href={route('feed')} className="back-link mb-0">

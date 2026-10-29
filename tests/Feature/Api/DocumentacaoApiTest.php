@@ -29,7 +29,7 @@ class DocumentacaoApiTest extends TestCase
         $especificacao = $this->getJson('/docs/api.json')->assertOk()->json();
 
         $this->assertStringStartsWith('3.1', $especificacao['openapi']);
-        $this->assertSame('API Redcam', $especificacao['info']['title']);
+        $this->assertSame('API CONECTA_OSC', $especificacao['info']['title']);
         $this->assertSame(['Público', 'OSC', 'Administração'], array_column($especificacao['tags'], 'name'));
         $this->assertArrayHasKey('http', $especificacao['components']['securitySchemes']);
 

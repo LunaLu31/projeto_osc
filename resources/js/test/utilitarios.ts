@@ -18,7 +18,7 @@ export async function esperarSemViolacoesDeAcessibilidade(elemento: Element): Pr
 /** Props compartilhadas mínimas para componentes que usam usePropsPagina(). */
 export function propsCompartilhadas(extra: Partial<PropsCompartilhadas> = {}): PropsCompartilhadas {
     return {
-        app: { nome: 'Redcam' },
+        app: { nome: 'CONECTA_OSC' },
         auth: { osc: null, admin: null },
         flash: { status: null, erro: null, senhaInicial: null },
         referencias: {

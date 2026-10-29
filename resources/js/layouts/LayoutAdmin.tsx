@@ -24,7 +24,7 @@ export default function LayoutAdmin({ titulo, children }: { titulo: string; chil
         <LayoutPainel
             titulo={titulo}
             usuario={auth.admin}
-            perfil="Administrador UOSCC"
+            perfil="Administrador CONECTA_OSC"
             inicio={route('admin.painel')}
             sair={route('admin.logout')}
             secoes={secoes}

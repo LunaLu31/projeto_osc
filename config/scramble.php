@@ -57,7 +57,7 @@ return [
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
         'description' => <<<'MD'
-API REST da plataforma **UOSCC / Redcam** – ponte entre organizações da sociedade civil (OSCs) de Camaçari e apoiadores.
+API REST da plataforma **OSC / CONECTA_OSC** – ponte entre organizações da sociedade civil (OSCs) de Camaçari e apoiadores.
 
 ## Áreas
 - **Público** – demandas abertas, estatísticas da rede e manifestação de interesse (sem login).
@@ -78,7 +78,7 @@ MD,
     ],
 
     'ui' => [
-        'title' => 'API Redcam',
+        'title' => 'API CONECTA_OSC',
     ],
 
     /*
