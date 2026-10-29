@@ -1,5 +1,5 @@
 -- ============================================================
--- BANCO DE DADOS: UOSCC / REDCAM
+-- BANCO DE DADOS: UOSCC / CONECTA_OSC
 -- Descrição: Sistema de gestão de demandas de OSCs
 -- Versão: MVP (Versão A)
 --

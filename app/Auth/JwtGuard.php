@@ -23,7 +23,7 @@ class JwtGuard implements Guard
     use GuardHelpers;
 
     /** Cookies do site, um por área: OSC e administrador podem estar conectados ao mesmo tempo. */
-    public const COOKIES = ['osc' => 'redcam_jwt_osc', 'admin' => 'redcam_jwt_admin'];
+    public const COOKIES = ['osc' => 'conecta_osc_jwt_osc', 'admin' => 'conecta_osc_jwt_admin'];
 
     /** Claims do token desta requisição (ou do recém-emitido). */
     private ?object $claims = null;

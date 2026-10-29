@@ -1,4 +1,4 @@
-# Redcam · UOSCC
+# CONECTA_OSC · UOSCC
 
 Plataforma que conecta organizações da sociedade civil (OSCs) de Camaçari a pessoas que querem ajudar.
 As OSCs publicam necessidades reais (demandas); apoiadores encontram, filtram e manifestam interesse
