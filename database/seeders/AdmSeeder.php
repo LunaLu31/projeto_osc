@@ -16,7 +16,7 @@ class AdmSeeder extends Seeder
     {
         Adm::firstOrCreate(
             ['email' => 'admin@uoscc.org'],
-            ['nome' => 'Administrador UOSCC', 'senha_hash' => Hash::make('admin123')],
+            ['nome' => 'Administrador CONECTA_OSC', 'senha_hash' => Hash::make('admin123')],
         );
     }
 }

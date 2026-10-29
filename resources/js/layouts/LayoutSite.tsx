@@ -184,7 +184,7 @@ export default function LayoutSite({ titulo, descricao = DESCRICAO_PADRAO, child
                         <Link href={route('osc.login')}>Área da OSC</Link>
                     </div>
                     <div className="footer-signature">
-                        <strong>UOSCC / CONECTA_OSC</strong>
+                        <strong>OSC / CONECTA_OSC</strong>
                         <span>Um projeto pela comunidade de Camaçari.</span>
                     </div>
                 </div>

@@ -63,7 +63,7 @@ export default function Demanda({ demanda, antiSpam }: DemandaProps) {
                             {osc.descricao && <p>{osc.descricao}</p>}
                             <div className="verified mt-4 md:mt-[30px]">
                                 <Icone nome="shield" tamanho={18} />
-                                Organização cadastrada pela UOSCC
+                                Organização cadastrada pela CONECTA_OSC
                             </div>
                         </aside>
 
