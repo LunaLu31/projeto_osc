@@ -170,6 +170,9 @@ php artisan migrate:fresh --seed --seeder=DemonstracaoSeeder   # ⚠️ apaga o 
 
 > O e-mail de cada OSC é o nome dela em minúsculas, sem acentos, separado por pontos e terminado em
 > `@example.org` (a lista completa aparece na aba **Rede** do admin). Troque as senhas em produção.
+>
+> **Sobre os nomes técnicos:** o banco `uoscc_redecam` e os e-mails `@uoscc.org` são nomes técnicos
+> mantidos do início do projeto. O nome oficial do sistema é **CONECTA_OSC**.
 
 <details>
 <summary><b>Renderização no servidor (SSR)</b></summary>
