@@ -10,6 +10,8 @@ Plataforma que conecta as organizações da sociedade civil (OSCs) de Camaçari 
 as OSCs publicam necessidades reais, apoiadores encontram e manifestam interesse sem criar conta,
 e a equipe da CONECTA_OSC acompanha toda a rede.
 
+**[🌐 Ver o sistema no ar](https://conecta-osc.vercel.app)** · [Apresentação com vídeo](https://conecta-osc-portfolio.vercel.app)
+
 ![Laravel 12](https://img.shields.io/badge/Laravel-12-337ab4?style=flat-square&logo=laravel&logoColor=white)
 ![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-337ab4?style=flat-square&logo=php&logoColor=white)
 ![React 19](https://img.shields.io/badge/React-19-337ab4?style=flat-square&logo=react&logoColor=white)
@@ -19,7 +21,7 @@ e a equipe da CONECTA_OSC acompanha toda a rede.
 ![MySQL 8](https://img.shields.io/badge/MySQL-8-337ab4?style=flat-square&logo=mysql&logoColor=white)
 <br>
 ![Versão A completa](https://img.shields.io/badge/Vers%C3%A3o_A-completa-2f7a4b?style=flat-square)
-![141 testes passando](https://img.shields.io/badge/testes-141_passando-2f7a4b?style=flat-square)
+![142 testes passando](https://img.shields.io/badge/testes-142_passando-2f7a4b?style=flat-square)
 ![WCAG 2.1 AA](https://img.shields.io/badge/acessibilidade-WCAG_2.1_AA-245d8d?style=flat-square)
 ![Login JWT](https://img.shields.io/badge/login-JWT-245d8d?style=flat-square&logo=jsonwebtokens&logoColor=white)
 
@@ -27,6 +29,7 @@ e a equipe da CONECTA_OSC acompanha toda a rede.
 [Funcionalidades](#-funcionalidades) ·
 [Telas](#️-telas) ·
 [Como rodar](#-como-rodar) ·
+[Deploy](#️-deploy) ·
 [API REST](#-api-rest) ·
 [Arquitetura](#-arquitetura) ·
 [Design system](#-design-system) ·
@@ -169,7 +172,8 @@ php artisan migrate:fresh --seed --seeder=DemonstracaoSeeder   # ⚠️ apaga o 
 | Documentação da API | `/docs/api` | sem login (em `APP_ENV=local`) | — |
 
 > O e-mail de cada OSC é o nome dela em minúsculas, sem acentos, separado por pontos e terminado em
-> `@example.org` (a lista completa aparece na aba **Rede** do admin). Troque as senhas em produção.
+> `@example.org` (a lista completa aparece na aba **Rede** do admin). Troque as senhas em produção:
+> no [site publicado](https://conecta-osc.vercel.app) elas já foram trocadas e não são as desta tabela.
 >
 > **Sobre os nomes técnicos:** o banco `uoscc_redecam` e os e-mails `@uoscc.org` são nomes técnicos
 > mantidos do início do projeto. O nome oficial do sistema é **CONECTA_OSC**.
@@ -207,6 +211,39 @@ com SSR: `composer dev:ssr`.
 | `API_DOCS_PUBLIC` | Exibe `/docs/api` fora do ambiente local |
 
 </details>
+
+---
+
+## ☁️ Deploy
+
+O sistema está no ar em **https://conecta-osc.vercel.app**, rodando em contêiner no
+[Vercel](https://vercel.com/kb/guide/laravel-php-with-docker) com o banco no
+[TiDB Cloud](https://tidbcloud.com) (compatível com MySQL), os dois em São Paulo e no plano gratuito.
+
+| Arquivo | Papel |
+| --- | --- |
+| [`Dockerfile.vercel`](Dockerfile.vercel) | Imagem FrankenPHP (PHP 8.4) com `pdo_mysql`, Composer sem dev e o build do Vite |
+| [`Caddyfile`](Caddyfile) | Expõe só a pasta `public` e envia o resto para o `index.php` |
+| [`vercel.json`](vercel.json) | Serviço de contêiner, região `gru1` e rewrite de todas as rotas |
+| [`.env.vercel.example`](.env.vercel.example) | Lista das variáveis a cadastrar no Vercel (sem valores) |
+| [`.dockerignore`](.dockerignore) / [`.vercelignore`](.vercelignore) | Mantêm `.env`, `vendor` e `node_modules` fora do envio e da imagem |
+
+```bash
+npx vercel@latest link                       # liga a pasta ao projeto do Vercel
+npx vercel@latest env add NOME -e production # uma vez por variável de .env.vercel.example
+npx vercel@latest deploy                     # Preview para testar
+npx vercel@latest deploy --prod              # produção
+```
+
+- **Migrations** rodam do seu computador, nunca na inicialização do contêiner: exporte as variáveis
+  `DB_*` do banco remoto (com `MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt`) e rode
+  `php artisan migrate --force`.
+- **Cache e sessão ficam no banco**, nunca em `array`: os logins JWT revogados ficam no cache e
+  precisam valer em todas as instâncias.
+- **Proxy:** o app confia no proxy do Vercel (`trustProxies` em `bootstrap/app.php`) para ver o IP
+  real do visitante nos limites por IP e saber que a conexão é HTTPS (HSTS).
+- **SSR desligado** (`INERTIA_SSR_ENABLED=false`): o site é renderizado no navegador.
+- O disco do contêiner não é durável; o sistema não guarda arquivos enviados, então isso não o afeta.
 
 ---
 
@@ -343,7 +380,7 @@ Antes do deploy, rode `php artisan seguranca:verificar`: ele confere HTTPS, debu
 ## ✅ Qualidade
 
 ```bash
-php artisan test        # 111 testes do back-end (site com assertInertia + API), banco MySQL uoscc_redecam_test
+php artisan test        # 112 testes do back-end (site com assertInertia + API), banco MySQL uoscc_redecam_test
 npm test                # 30 testes de componentes React (Vitest + Testing Library + axe-core)
 npm run verificar       # TypeScript + ESLint + Prettier + tipos da API em dia
 vendor/bin/pint         # padrão de código PHP (PSR-12)
