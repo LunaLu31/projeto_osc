@@ -27,6 +27,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Em produção o app roda atrás do proxy do Vercel, que termina o HTTPS e reescreve o
+        // X-Forwarded-For (o cliente não consegue falsificá-lo). Confiar no proxy faz $request->ip()
+        // devolver o IP real (limites por IP) e $request->isSecure() ser verdadeiro (HSTS).
+        $middleware->trustProxies(at: '*');
+
         // CSP, anti-clickjacking, nosniff e HSTS em todas as respostas.
         $middleware->append(CabecalhosSeguranca::class);
 
