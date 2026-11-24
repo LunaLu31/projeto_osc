@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Demanda;
 use App\Support\Turnstile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class SegurancaTest extends TestCase
@@ -47,6 +49,22 @@ class SegurancaTest extends TestCase
             ->assertHeaderMissing('Strict-Transport-Security');
 
         $this->assertStringContainsString('geolocation=()', $response->headers->get('Permissions-Policy'));
+    }
+
+    public function test_behind_the_proxy_uses_the_real_client_ip_and_https(): void
+    {
+        // No Vercel o HTTPS termina no proxy, que repassa o IP e o esquema originais nos cabeçalhos X-Forwarded-*.
+        $this->app['env'] = 'production';
+        Route::get('/_teste-proxy', fn (Request $request) => [
+            'ip' => $request->ip(),
+            'https' => $request->isSecure(),
+        ]);
+
+        $this->withHeaders(['X-Forwarded-For' => '203.0.113.7', 'X-Forwarded-Proto' => 'https'])
+            ->get('/_teste-proxy')
+            ->assertOk()
+            ->assertExactJson(['ip' => '203.0.113.7', 'https' => true])
+            ->assertHeader('Strict-Transport-Security');
     }
 
     public function test_content_security_policy_uses_a_fresh_nonce_and_blocks_framing(): void
