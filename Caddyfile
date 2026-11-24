@@ -1,0 +1,14 @@
+# FrankenPHP (Caddy) para o deploy no Vercel. Formato do guia oficial:
+# https://vercel.com/kb/guide/laravel-php-with-docker
+#
+# O Vercel termina o HTTPS e repassa HTTP para a porta indicada em PORT.
+# Só a pasta public é exposta: código e configurações do Laravel ficam fora.
+:{$PORT:80} {
+	root * /app/public
+	encode zstd gzip
+
+	# Serve arquivos estáticos (public/build, imagens) e envia o restante para o index.php.
+	php_server {
+		try_files {path} index.php
+	}
+}

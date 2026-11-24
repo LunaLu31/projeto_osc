@@ -1,0 +1,31 @@
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+
+# Segredos: o Vercel injeta as variáveis na hora de iniciar o contêiner.
+.env
+.env.*
+!.env.example
+!.env.vercel.example
+
+node_modules
+vendor
+tests
+public/build
+public/hot
+bootstrap/ssr
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+*.log
+.phpunit.result.cache
+.phpunit.cache
+
+# Caches gerados no ambiente de desenvolvimento (listam pacotes de dev como pail e collision).
+# O composer dump-autoload da imagem gera os de produção.
+bootstrap/cache/*.php
+storage/framework/testing/*
+storage/inertia-devtools/*
